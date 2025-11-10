@@ -18,15 +18,18 @@ services:
     container_name: my-django-app
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./Django:/app  # ← монтируем папку Django в /app
+      - ./Django:/app
     ports:
       - "8000:8000"
     environment:
+      - SECRET_KEY='django-insecure-=uk_we4ekk73x1nyc-29o$7ot0)vwvrbw8kb(cem#z=h*p9kc*'
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1
       - DB_HOST=postgres
       - DB_NAME=myapp_db
       - DB_USER=myuser
       - DB_PASSWORD=mypassword
-      - PYTHONPATH=/app  # ← важно для импортов
+      - PYTHONPATH=/app
     depends_on:
       - postgres
 

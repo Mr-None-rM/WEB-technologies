@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 class Command(BaseCommand):
     help = 'Fill database with test data'
+    #Вынужденно использовал save() для того чтобы на сайте видно было лайки пользователей
     
     def add_arguments(self, parser):
         parser.add_argument('ratio', type=int, help='Fill ratio coefficient')
