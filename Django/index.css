@@ -1,0 +1,130 @@
+body { 
+ margin: 0 
+}
+ 
+header { 
+ display: flex; 
+ align-items: center; 
+}
+ 
+input.search { 
+ margin: auto; 
+}
+ 
+header>button.ask-button { 
+ color: #FFF; 
+ background-color: green; 
+}
+ 
+.profile-wrapper { 
+ margin-left: auto; 
+ display: flex; 
+ gap: 12px; 
+ align-items: center; 
+}
+ 
+.page-content__root { 
+ display: flex; 
+    gap: 48px;
+    flex-direction: row;
+}
+ 
+section.root__header {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+ 
+main>section.root__header>h1 {
+    font-weight: 300;
+}
+ 
+aside #best_members>.best-members__links {
+    display: flex;
+    gap: 12px;
+    flex-direction: column;
+}
+ 
+aside #popular_tags>.popular-tags__links {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+ 
+aside #popular_tags>.popular-tags__links a {
+    text-decoration: none;
+}
+ 
+section.content {
+    display: flex;
+    gap: 16px;
+    flex-direction: column;
+}
+ 
+.question-item {
+    padding: 8px;
+    border: 2px solid black;
+    display: flex;
+    gap: 16px;
+}
+ 
+.question-item .likes {
+    width: 40px;
+}
+ 
+.question-item .likes {
+    width: 40px;
+}
+ 
+#firefox {
+    color: orange;
+}
+ 
+.question-title {
+    font-size: 20px;
+    transition: color 0.2s ease-out;
+}
+ 
+.question-title:hover {
+    color: red;
+}
+ 
+.question__content > .description {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+ 
+.question__footer {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+}
+ 
+ul.best-members__links {
+    list-style: none;
+    padding: 0;
+}
+ 
+section.paginator {
+    margin-top: 12px;
+}
+ 
+section.paginator > * {
+    background-color: white;
+ 
+    transition: background-color 1s ease-out;
+    border: 2px solid black;
+    padding: 4px;
+    cursor: pointer;
+}
+ 
+section.paginator > *:hover {
+    background-color: bisque;
+}
+ 
+section.paginator > .no-click {
+    background-color: inherit;
+    cursor: default;
+}

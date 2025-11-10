@@ -1,0 +1,29 @@
+{% load voting_tags %}
+{% csrf_token %}
+<div class="compact-voting" id="voting-{{ question.id }}">
+    {% get_question_vote user_question_votes question.id as current_vote %}
+    <button class="voting-btn vote-up {% if current_vote == 'like' %}active{% endif %}"
+            hx-post="{% url 'vote_question' question.id %}"
+            hx-vals='{"type": "like", "csrfmiddlewaretoken": "{{ csrf_token }}"}'
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-target="#voting-{{ question.id }}"
+            hx-swap="outerHTML">
+        <svg class="voting-icon" width="12" height="12" viewBox="0 0 18 18">
+            <path d="M1 12h16L9 4z"></path>
+        </svg>
+    </button>
+    <span class="voting-count {% if question.votes > 0 %}positive{% elif question.votes < 0 %}negative{% endif %}">
+        {{ question.rating }}
+    </span>
+    <button class="voting-btn vote-down {% if current_vote == 'dislike' %}active{% endif %}"
+            hx-post="{% url 'vote_question' question.id %}"
+            hx-vals='{"type": "dislike", "csrfmiddlewaretoken": "{{ csrf_token }}"}'
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+            hx-target="#voting-{{ question.id }}"
+            hx-swap="outerHTML">
+        <svg class="voting-icon" width="12" height="12" viewBox="0 0 18 18">
+            <path d="M1 6h16l-8 8z"></path>
+        </svg>
+    </button>
+</div>
+

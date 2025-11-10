@@ -1,0 +1,71 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/question.css' %}">
+{% endblock %}
+{% block title %}Question Page - FeatherFlow{% endblock %}
+{% block content %}
+<main class="body_main">
+  <section class="body_main_header">
+    <div class="question">
+      <div class="question_info">
+        <img src="{{ question.author.profile.image_url }}" alt="profile_img">
+        {% include 'myapp/voting_question.html' with object=question object_type='question' current_vote=question.get_user_vote user=user %}
+      </div>
+      <div class="question_content">
+        <a href="{% url 'question_detail' question.id %}" class="question_title">{{ question.title }}</a>
+        <div class="question_text"> {{ question.content }} </div>
+        <div class="question_tags">
+          <a href="{% url 'question_detail' question.id %}">answers</a>
+          <span>
+            Tags:
+            {% for tag in question.tags.all %}
+              <a href="{% url 'tag_questions' tag.id %}">{{ tag.name }}</a>
+            {% empty %}
+              <span>no tags</span>
+            {% endfor %}
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="body_main_answers">
+    {% for answer in answers %}
+    {% include 'myapp/answer_item.html' with answer=answer question=question user=user %}
+    {% empty %}
+    <div class="no-questions" style="text-align: center; padding: 40px; color: #666;">
+        <h3>No answers yet</h3>
+        <p>Be the first to answer that question!</p>
+    </div>
+    {% endfor %}
+  {% if answers.has_other_pages %}
+  <section class="main_paginator">
+    {% if answers.has_previous %}
+      <a href="?page=1" class="paginator-btn paginator-first">First</a>
+      <a href="?page={{ answers.previous_page_number }}" class="paginator-btn paginator-prev">Previous</a>
+    {% endif %}
+    {% for num in answers.paginator.page_range %}
+      {% if answers.number == num %}
+        <span class="paginator-btn paginator-current">{{ num }}</span>
+      {% elif num > answers.number|add:'-3' and num < answers.number|add:'3' %}
+        <a href="?page={{ num }}" class="paginator-btn">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if answers.has_next %}
+      <a href="?page={{ answers.next_page_number }}" class="paginator-btn paginator-next">Next</a>
+      <a href="?page={{ answers.paginator.num_pages }}" class="paginator-btn paginator-last">Last</a>
+    {% endif %}
+  </section>
+  {% endif %}
+  {% if user != question.author %}
+    <section class="main_answer">
+      <form class="answer_form" method="post" action="{% url 'question_detail' question.id %}">
+        {% csrf_token %}
+        <textarea class="answer_field" placeholder="Write your answer" name="answer_content" required></textarea>
+        <br>
+        <button type="submit" class="answer_button">Answer</button>
+      </form>
+    </section>
+  {% endif %}
+</main>
+{% endblock %}

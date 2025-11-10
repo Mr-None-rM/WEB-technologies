@@ -1,0 +1,57 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/index.css' %}">
+{% endblock %}
+{% block title %}Tag Page - FeatherFlow{% endblock %}
+{% block content %}
+<main class="body_main">
+  <section class="body_main_header">
+    <h1>Tag: {{tag.name}}</h1>
+  </section>
+  <section class="body_main_questions">
+    {% for question in questions %}
+    <div class="question">
+      <div class="question_info">
+        <img src="{{ question.author.profile.image_url }}" alt="profile_img">
+        {% include 'myapp/voting_question.html' with object=question object_type='question' current_vote=question.get_user_vote user=user %}
+      </div>
+      <div class="question_content">
+        <a href="{% url 'question_detail' question.id %}" class="question_title">{{ question.title }}</a>
+        <div class="question_text"> {{ question.content }} </div>
+        <div class="question_tags">
+          <a href="{% url 'question_detail' question.id %}">answers</a>
+          <span>
+            Tags:
+            {% for tag in question.tags.all %}
+              <a href="{% url 'tag_questions' tag.id %}">{{ tag.name }}</a>
+            {% empty %}
+              <span>no tags</span>
+            {% endfor %}
+          </span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% if questions.has_other_pages %}
+  <section class="main_paginator">
+    {% if questions.has_previous %}
+      <a href="?page=1" class="paginator-btn paginator-first">First</a>
+      <a href="?page={{ questions.previous_page_number }}" class="paginator-btn paginator-prev">Previous</a>
+    {% endif %}
+    {% for num in questions.paginator.page_range %}
+      {% if questions.number == num %}
+        <span class="paginator-btn paginator-current">{{ num }}</span>
+      {% elif num > questions.number|add:'-3' and num < questions.number|add:'3' %}
+        <a href="?page={{ num }}" class="paginator-btn">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if questions.has_next %}
+      <a href="?page={{ questions.next_page_number }}" class="paginator-btn paginator-next">Next</a>
+      <a href="?page={{ questions.paginator.num_pages }}" class="paginator-btn paginator-last">Last</a>
+    {% endif %}
+  </section>
+  {% endif %}
+</main>
+{% endblock %}
