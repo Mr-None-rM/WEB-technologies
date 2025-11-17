@@ -6,7 +6,6 @@
     <div class="answer_content">
       <div class="answer_text">{{answer.content}}</div>
       <div class="answer_result">
-        {% csrf_token %}
         {% if user == question.author %}
           {% include 'myapp/accept_answer.html' with answer=answer %}
         {% endif %}

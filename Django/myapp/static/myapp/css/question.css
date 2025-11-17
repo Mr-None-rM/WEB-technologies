@@ -130,7 +130,6 @@
     align-items: center;
     gap: 8px;
     padding: 8px;
-    background-color: #e9ecef;
     border-radius: 4px;
     margin-top: 8px;
 }
@@ -149,7 +148,6 @@
 .main_answer {
     margin-top: 30px;
     padding: 20px;
-    border: 1px solid #e9ecef;
     border-radius: 8px;
     background-color: white;
 }

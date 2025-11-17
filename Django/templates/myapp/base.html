@@ -6,24 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="{% static 'myapp/css/base.css' %}" />
     {% block extra_css %}{% endblock %}
+    {% block extra_js %}{% endblock %}
     <title>{% block title %}My Site Main{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 <body>
+
   <header>
+
     <a href="{% url 'index' %}" class="header-logo-link">
       <span>FeatherFlow</span>
       <img src="{% static 'myapp/images/logo.png' %}" alt="logo_img">
     </a>
+
     <form method="get" action="{% url 'search' %}" class="search-form">
       <input type="text" name="q" class="header_search" placeholder="Search" value="{{ request.GET.q }}" required>
       <button type="submit" style="display: none;">Search</button>
     </form>
+
     <a href="{% url 'ask' %}" class="header_button_ask">Ask</a>
+
     <div class="header_profile">
       {% if user.is_authenticated %}
+
         <img src="{{ user.profile.image_url }}" alt="profile_img">
+
         <div class="header_profile_info">
           <span class="profile_name">{{ user.profile.nickname }}</span> 
           <div class="header_profile_settings">
@@ -43,12 +51,16 @@
         </div>
       {% endif %}
     </div>
+
   </header>
+
   <div class="body">
     {% block content %}
     {% endblock %}
     {% block sidebar %}
+
     <aside class="body_asside">
+
       <section class="body_asside_tags">
         <h2>Popular Tags</h2>
         <div class="body_asside_popular_tags">
@@ -62,6 +74,7 @@
           {% endfor %}
         </div>
       </section>
+
       <section class="body_asside_questions">
         <h2>Hot Questions</h2>
         <div class="body_asside_hot_questions">
@@ -75,8 +88,11 @@
           {% endfor %}
         </div>
       </section>
+
     </aside>
+
     {% endblock %}
   </div>
+
 </body>
 </html>

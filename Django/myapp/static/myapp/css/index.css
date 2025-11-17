@@ -18,6 +18,8 @@
 .body_main_questions {
     display: flex;
     gap: 16px;
+    max-width: 1200px;
+    margin: auto;
     flex-direction: column;
 }
 

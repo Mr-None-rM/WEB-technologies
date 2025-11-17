@@ -7,11 +7,14 @@
 {% block content %}
 <!-- Пока так, потом можно сделать модалку -->
 <main class="auth_main">
+
   <section class="auth_container">
+
     <div class="auth_header">
       <h1>Sign Up</h1>
       <p>Create your account</p>
     </div>
+
     <form class="auth_form" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       {% if serializer and serializer.errors.non_field_errors %}
@@ -31,6 +34,7 @@
                placeholder="Your username"
                value="{{ initial_data.username|default:'' }}"
                required>
+
         {% if serializer and serializer.errors.username %}
           <div class="field_errors">
             {% for error in serializer.errors.username %}
@@ -38,6 +42,7 @@
             {% endfor %}
           </div>
         {% endif %}
+
       </div>
 
       <div class="form_row">
@@ -49,6 +54,7 @@
                placeholder="Your nickname"
                value="{{ initial_data.nickname|default:'' }}"
                required>
+
         {% if serializer and serializer.errors.nickname %}
           <div class="field_errors">
             {% for error in serializer.errors.nickname %}
@@ -56,6 +62,7 @@
             {% endfor %}
           </div>
         {% endif %}
+
       </div>
 
       <div class="form_row">
@@ -67,6 +74,7 @@
                placeholder="Your email"
                value="{{ initial_data.email|default:'' }}"
                required>
+
         {% if serializer and serializer.errors.email %}
           <div class="field_errors">
             {% for error in serializer.errors.email %}
@@ -74,6 +82,7 @@
             {% endfor %}
           </div>
         {% endif %}
+
       </div>
 
       <div class="form_row">
@@ -84,6 +93,7 @@
                class="form_input {% if serializer and serializer.errors.password %}input_error{% endif %}" 
                placeholder="Your password"
                required>
+
         {% if serializer and serializer.errors.password %}
           <div class="field_errors">
             {% for error in serializer.errors.password %}
@@ -91,6 +101,7 @@
             {% endfor %}
           </div>
         {% endif %}
+
       </div>
 
       <div class="form_row">
@@ -101,6 +112,7 @@
                class="form_input {% if serializer and serializer.errors.password_confirm %}input_error{% endif %}" 
                placeholder="Confirm your password"
                required>
+
         {% if serializer and serializer.errors.password_confirm %}
           <div class="field_errors">
             {% for error in serializer.errors.password_confirm %}
@@ -108,6 +120,7 @@
             {% endfor %}
           </div>
         {% endif %}
+
       </div>
 
       <div class="form-group file-group">
@@ -119,6 +132,7 @@
                  class="file-input {% if serializer and serializer.errors.avatar %}input_error{% endif %}"
                  accept="image/*">
         </label>
+
         {% if serializer and serializer.errors.avatar %}
           <div class="field_errors">
             {% for error in serializer.errors.avatar %}
@@ -126,16 +140,22 @@
             {% endfor %}
           </div>
         {% endif %}
+
         <div class="file-hint">JPG, PNG or GIF. Max 5MB.</div>
+      
       </div>
 
       <div class="form_actions">
         <button type="submit" class="auth_button">Create Account</button>
       </div>
+
       <div class="auth_footer">
         <p>Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
       </div>
+
     </form>
+
   </section>
+  
 </main>
 {% endblock %}

@@ -1,44 +1,57 @@
 {% extends "myapp/base.html" %}
+
 {% load static %}
+
 {% block title %}User Settings - FeatherFlow{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'myapp/css/settings.css' %}">
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'myapp/preview.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="settings-container">
     <div class="settings-card">
-      <h1 class="settings-title">User Settings</h1>
-      <form method="POST" enctype="multipart/form-data" class="settings-form">
-        {% csrf_token %}
-        <div class="avatar-preview">
-          <img src="{{ user.profile.image_url }}" alt="Current avatar" id="avatar-preview">
-        </div>
-        {% if serializer and serializer.errors.non_field_errors %}
-          <div class="form_errors">
-            {% for error in serializer.errors.non_field_errors %}
-              <div class="error_message">{{ error }}</div>
-            {% endfor %}
-          </div>
-        {% endif %}
-        <div class="form-group">
-          <label class="file-label">
-            <input type="file" 
-              id="avatar" 
-              name="avatar" 
-              class="file-input {% if serializer and serializer.errors.avatar %}input_error{% endif %}"
-              accept="image/*">
-            <span class="file-text">Change Profile Picture</span>
-          </label>
-          {% if serializer and serializer.errors.avatar %}
-          <div class="field_errors">
-            {% for error in serializer.errors.avatar %}
-                span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-          {% endif %}
+        <h1 class="settings-title">User Settings</h1>
+
+        <form method="POST" enctype="multipart/form-data" class="settings-form">
+            {% csrf_token %}
+            <div class="avatar-preview">
+                <img src="{{ user.profile.image_url }}" alt="Current avatar" id="avatar-preview">
             </div>
+
+            {% if serializer and serializer.errors.non_field_errors %}
+            <div class="form_errors">
+                {% for error in serializer.errors.non_field_errors %}
+                <div class="error_message">{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="form-group">
-                <label>Nickname</label>
+                <label class="file-label">
+                    <input type="file" 
+                           id="avatar" 
+                           name="avatar" 
+                           class="file-input {% if serializer and serializer.errors.avatar %}input_error{% endif %}"
+                           accept="image/*">
+                    <span class="file-text">Change Profile Picture</span>
+                </label>
+
+                {% if serializer and serializer.errors.avatar %}
+                <div class="field_errors">
+                    {% for error in serializer.errors.avatar %}
+                    <span class="error_message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="nickname">Nickname</label>
                 <input type="text" 
                        id="nickname" 
                        name="nickname" 
@@ -46,15 +59,16 @@
                        value="{{ initial_data.nickname|default:user.profile.nickname }}"
                        required>
                 {% if serializer and serializer.errors.nickname %}
-                  <div class="field_errors">
+                <div class="field_errors">
                     {% for error in serializer.errors.nickname %}
-                      <span class="error_message">{{ error }}</span>
+                    <span class="error_message">{{ error }}</span>
                     {% endfor %}
-                  </div>
+                </div>
                 {% endif %}
             </div>
+            
             <div class="form-group">
-                <label>Username</label>
+                <label for="username">Username</label>
                 <input type="text" 
                        id="username" 
                        name="username" 
@@ -62,15 +76,16 @@
                        value="{{ initial_data.username|default:user.username }}"
                        required>
                 {% if serializer and serializer.errors.username %}
-                  <div class="field_errors">
+                <div class="field_errors">
                     {% for error in serializer.errors.username %}
-                      <span class="error_message">{{ error }}</span>
+                    <span class="error_message">{{ error }}</span>
                     {% endfor %}
-                  </div>
+                </div>
                 {% endif %}
             </div>
+            
             <div class="form-group">
-                <label>Email</label>
+                <label for="email">Email</label>
                 <input type="email" 
                        id="email" 
                        name="email" 
@@ -78,17 +93,19 @@
                        value="{{ initial_data.email|default:user.email }}"
                        required>
                 {% if serializer and serializer.errors.email %}
-                  <div class="field_errors">
+                <div class="field_errors">
                     {% for error in serializer.errors.email %}
-                      <span class="error_message">{{ error }}</span>
+                    <span class="error_message">{{ error }}</span>
                     {% endfor %}
-                  </div>
+                </div>
                 {% endif %}
             </div>
+            
             <button type="submit" class="btn-primary">Save Changes</button>
         </form>
     </div>
 </div>
+
 <script>
 document.getElementById('avatar').addEventListener('change', function(e) {
     const file = e.target.files[0];

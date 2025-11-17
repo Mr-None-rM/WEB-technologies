@@ -2,6 +2,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
+from django.views.generic import ListView, DetailView, CreateView
 from django.views.decorators.http import require_POST
 from .models import Question, Answer, Tag
 from django.contrib.auth import login
@@ -86,87 +87,92 @@ class LoginView(View):
             'initial_data': request.POST
         })
 
-class Index(View):
-    def get(self, request):
-        questions = Question.objects.new()
-        page = request.GET.get('page')
-        paginated_questions = paginate_objects(questions, page, per_page=5)
-        return render(request, "myapp/index.html", {
-            'questions': paginated_questions
-        })
-    
-class HotQuestions(View):
-    def get(self, request):
-        questions = Question.objects.hot()
-        page = request.GET.get('page')
-        paginated_questions = paginate_objects(questions, page, per_page=5)
-        return render(request, "myapp/index.html", {
-            'questions': paginated_questions
-        })
-    
-class Search(View):
-    def get(self, request):
-        query = request.GET.get('q', '').strip()
-        questions = Question.objects.search(query)
-        page_title = f'Search results for "{query}"'
-        page = request.GET.get('page')
-        paginated_questions = paginate_objects(questions, page, per_page=5)
-        return render(request, "myapp/search.html", {
-            'questions': paginated_questions,
-            'query': query,
-            'page_title': page_title
-        })
+class Index(ListView):
+    model = Question
+    template_name = "myapp/index.html"
+    context_object_name = 'questions'
+    paginate_by = 5
 
-class QuestionDetail(LoginRequiredMixin, View):
-    def get(self, request, question_id):
-        question = get_object_or_404(Question, id=question_id)
-        answers = Answer.objects.for_question(question_id)
-        page = request.GET.get('page')
-        paginated_answers = paginate_objects(answers, page, per_page=5)
-        return render(request, "myapp/question.html", {
-            'question': question,
-            'answers': paginated_answers
-        })
-    
-    def post(self, request, question_id):
-        question = get_object_or_404(Question, id=question_id)
+    def get_queryset(self):
+        return Question.objects.new()
+
+class HotQuestions(ListView):
+    model = Question
+    template_name = "myapp/index.html"
+    context_object_name = 'questions'
+    paginate_by = 5
+
+    def get_queryset(self):
+        return Question.objects.hot()
+
+class Search(ListView):
+    model = Question
+    template_name = "myapp/search.html"
+    context_object_name = 'questions'
+    paginate_by = 5
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '').strip()
+        return Question.objects.search(query)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '').strip()
+        context['query'] = query
+        context['page_title'] = f'Search results for "{query}"'
+        return context
+
+class QuestionDetail(DetailView):
+    model = Question
+    template_name = "myapp/question.html"
+    context_object_name = 'question'
+    pk_url_kwarg = 'question_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        answers = Answer.objects.for_question(self.object.id)
+        page = self.request.GET.get('page')
+        context['answers'] = paginate_objects(answers, page, per_page=5)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
         answer_content = request.POST.get('answer_content')
-        if answer_content:
+        if answer_content and request.user.is_authenticated:
             Answer.objects.create(
                 content=answer_content,
-                question=question,
+                question=self.object,
                 author=request.user
             )
-        return redirect('question_detail', question_id=question_id)
+        return redirect('question_detail', question_id=self.object.id)
 
-class AskQuestion(LoginRequiredMixin, View):
-    def get(self, request):
-        form = AskQuestionForm()
-        return render(request, "myapp/ask.html", {
-            'form': form
-        })
-    
-    def post(self, request):
-        form = AskQuestionForm(request.POST)
-        if form.is_valid():
-            question = form.save(request.user)
-            return redirect('question_detail', question_id=question.id)
-        return render(request, "myapp/ask.html", {
-            'form': form
-        })
+class AskQuestion(LoginRequiredMixin, CreateView):
+    model = Question
+    form_class = AskQuestionForm
+    template_name = "myapp/ask.html"
 
-class TagQuestions(LoginRequiredMixin, View):
-    def get(self, request, tag_id):
-        tag = get_object_or_404(Tag, id=tag_id)
-        questions = Question.objects.with_tag(tag.name)
-        page = request.GET.get('page')
-        paginated_questions = paginate_objects(questions, page, per_page=5)
-        return render(request, "myapp/tag.html", {
-            'tag': tag,
-            'questions': paginated_questions,
-        })
-    
-#HTMX для оценки вопросов и ответов и принятия ответов автором
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('question_detail', kwargs={'question_id': self.object.id})
+
+class TagQuestions(LoginRequiredMixin, ListView):
+    model = Question
+    template_name = "myapp/tag.html"
+    context_object_name = 'questions'
+    paginate_by = 5
+
+    def get_queryset(self):
+        tag = get_object_or_404(Tag, id=self.kwargs['tag_id'])
+        return Question.objects.with_tag(tag.name)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = get_object_or_404(Tag, id=self.kwargs['tag_id'])
+        return context
+
 @require_POST
 def vote_question(request, question_id):
     if not request.user.is_authenticated:

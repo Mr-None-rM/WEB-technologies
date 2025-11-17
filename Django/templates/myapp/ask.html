@@ -1,14 +1,19 @@
 {% extends "myapp/base.html" %}
 {% load static %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'myapp/css/ask.css' %}">
 {% endblock %}
+
 {% block title %}Ask Page - FeatherFlow{% endblock %}
+
 {% block content %}
 <main class="body_main">
+
   <section class="body_main_header">
     <h1>Ask question</h1>
   </section>
+
   <section class="body_main_question">
     <form class="ask_question_form" method="POST" action="{% url 'ask' %}">
       {% csrf_token %}
@@ -19,6 +24,7 @@
           {% endfor %}
         </div>
       {% endif %}
+
       <div class="form_row">
         <label for="{{ form.title.id_for_label }}">Title</label>
         <div class="input_container">
@@ -32,6 +38,7 @@
           {% endif %}
         </div>
       </div>
+
       <div class="form_row">
         <label for="{{ form.content.id_for_label }}">Text</label>
         <div class="input_container">
@@ -45,6 +52,7 @@
           {% endif %}
         </div>
       </div>
+
       <div class="form_row">
         <label for="{{ form.tags_input.id_for_label }}">Tags</label>
         <div class="input_container">
@@ -59,9 +67,11 @@
           <small>Enter tags separated by commas (max 5 tags)</small>
         </div>
       </div>
+
       <div class="form_actions">
         <button type="submit" class="ask_question_button">Ask</button>
       </div>
+
     </form>
   </section>
 </main>

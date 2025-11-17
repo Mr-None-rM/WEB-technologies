@@ -163,6 +163,11 @@ button.profile-btn {
     margin: 0 auto;
 }
 
+.body_main {
+    flex: 1;
+    min-width: 800px;
+}
+
 .body_asside {
     width: 280px;
     flex-shrink: 0;

@@ -1,28 +1,7 @@
 from django import forms
 from .models import Question, Tag
 
-class AskQuestionForm(forms.Form):
-    title = forms.CharField(
-        max_length=200,
-        widget=forms.TextInput(attrs={
-            'class': 'form_input',
-            'placeholder': 'Enter your question title'
-        }),
-        error_messages={
-            'required': 'Title is required',
-            'max_length': 'Title cannot be longer than 200 characters'
-        }
-    )
-    content = forms.CharField(
-        widget=forms.Textarea(attrs={
-            'class': 'form_textarea', 
-            'placeholder': 'Describe your question in detail',
-            'rows': 6
-        }),
-        error_messages={
-            'required': 'Content is required'
-        }
-    )
+class AskQuestionForm(forms.ModelForm):
     tags_input = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'form_input',
@@ -32,6 +11,30 @@ class AskQuestionForm(forms.Form):
             'required': 'At least one tag is required'
         }
     )
+    
+    class Meta:
+        model = Question
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form_input',
+                'placeholder': 'Enter your question title'
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'form_textarea', 
+                'placeholder': 'Describe your question in detail',
+                'rows': 6
+            }),
+        }
+        error_messages = {
+            'title': {
+                'required': 'Title is required',
+                'max_length': 'Title cannot be longer than 200 characters'
+            },
+            'content': {
+                'required': 'Content is required'
+            }
+        }
     
     def clean_tags_input(self):
         tags_input = self.cleaned_data['tags_input'].strip()
@@ -45,19 +48,15 @@ class AskQuestionForm(forms.Form):
             raise forms.ValidationError('Maximum 5 tags allowed')
         return tags_input
 
-    def save(self, user):
-        title = self.cleaned_data['title']
-        content = self.cleaned_data['content']
+    def save(self, commit=True):
+        question = super().save(commit=False)
         tags_input = self.cleaned_data['tags_input']
-        question = Question.objects.create(
-            title=title,
-            content=content,
-            author=user
-        )
         tag_names = [tag.strip() for tag in tags_input.split(',')]
-        for tag_name in tag_names:
-            if tag_name:
-                tag_name_lower = tag_name.lower()
-                tag, created = Tag.objects.get_or_create(name=tag_name_lower)
-                question.tags.add(tag)
+        if commit:
+            question.save()
+            for tag_name in tag_names:
+                if tag_name:
+                    tag_name_lower = tag_name.lower()
+                    tag, created = Tag.objects.get_or_create(name=tag_name_lower)
+                    question.tags.add(tag)
         return question

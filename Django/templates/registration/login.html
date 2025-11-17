@@ -7,11 +7,14 @@
 {% block content %}
 <!-- Пока так, потом можно сделать модалку -->
 <main class="auth_main">
+
   <section class="auth_container">
+
     <div class="auth_header">
       <h1>Sign In</h1>
       <p>Enter your credentials to continue</p>
     </div>
+
     <form class="auth_form" method="POST">
       {% csrf_token %}
       {% if serializer and serializer.errors %}
@@ -23,6 +26,7 @@
           </div>
         {% endif %}
       {% endif %}
+
       <div class="form_row">
         <label for="username">Username</label>
         <input type="text" 
@@ -32,6 +36,7 @@
                placeholder="Your username"
                value="{{ initial_data.username|default:'' }}"
                required>
+
         {% if serializer and serializer.errors.username %}
           <div class="field_errors">
             {% for error in serializer.errors.username %}
@@ -39,7 +44,9 @@
             {% endfor %}
           </div>
         {% endif %}
+        
       </div>
+
       <div class="form_row">
         <label for="password">Password</label>
         <input type="password" 
@@ -48,6 +55,7 @@
                class="form_input {% if serializer and serializer.errors.password %}input_error{% endif %}" 
                placeholder="Your password"
                required>
+
         {% if serializer and serializer.errors.password %}
           <div class="field_errors">
             {% for error in serializer.errors.password %}
@@ -55,14 +63,20 @@
             {% endfor %}
           </div>
         {% endif %}
+
       </div>
+
       <div class="form_actions">
         <button type="submit" class="auth_button">Sign In</button>
       </div>
+
       <div class="auth_footer">
         <p>Need an account? <a href="{% url 'register' %}">Sign up</a></p>
       </div>
+
     </form>
+
   </section>
+  
 </main>
 {% endblock %}
