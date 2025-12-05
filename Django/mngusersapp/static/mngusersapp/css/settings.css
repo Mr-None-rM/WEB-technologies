@@ -1,0 +1,162 @@
+.settings-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.settings-card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.settings-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.form_row {
+    margin-bottom: 1.5rem;
+}
+
+.form_row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.field_required {
+    color: #dc3545;
+}
+
+.form_input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form_input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.avatar-upload-group {
+    margin-bottom: 1rem;
+}
+
+.avatar-preview-container {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.avatar-preview-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e1e5e9;
+}
+
+.file-label {
+    display: block;
+    cursor: pointer;
+    padding: 15px;
+    border: 2px dashed #e1e5e9;
+    border-radius: 8px;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.file-label:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.file-input {
+    display: none;
+}
+
+.file-text {
+    color: #666;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.file-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #007bff;
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.file-hint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 5px;
+    text-align: center;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 2rem;
+}
+
+.btn-primary {
+    flex: 1;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.form_errors {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f5c6cb;
+}
+
+.error_message {
+    font-size: 14px;
+}
+
+.field_errors {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.input_error {
+    border-color: #dc3545;
+}
+
+.form_hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.hint_text {
+    display: block;
+}
