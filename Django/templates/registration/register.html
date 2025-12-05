@@ -1,15 +1,13 @@
 {% extends "myapp/base.html" %}
 {% load static %}
+{% load form_extras %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'myapp/css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'mngusersapp/css/auth.css' %}">
 {% endblock %}
 {% block title %}Register - FeatherFlow{% endblock %}
 {% block content %}
-<!-- Пока так, потом можно сделать модалку -->
 <main class="auth_main">
-
   <section class="auth_container">
-
     <div class="auth_header">
       <h1>Sign Up</h1>
       <p>Create your account</p>
@@ -17,133 +15,18 @@
 
     <form class="auth_form" method="POST" enctype="multipart/form-data">
       {% csrf_token %}
-      {% if serializer and serializer.errors.non_field_errors %}
+      
+      {% if form.non_field_errors %}
         <div class="form_errors">
-          {% for error in serializer.errors.non_field_errors %}
+          {% for error in form.non_field_errors %}
             <div class="error_message">{{ error }}</div>
           {% endfor %}
         </div>
       {% endif %}
 
-      <div class="form_row">
-        <label for="username">Username</label>
-        <input type="text" 
-               id="username" 
-               name="username" 
-               class="form_input {% if serializer and serializer.errors.username %}input_error{% endif %}" 
-               placeholder="Your username"
-               value="{{ initial_data.username|default:'' }}"
-               required>
-
-        {% if serializer and serializer.errors.username %}
-          <div class="field_errors">
-            {% for error in serializer.errors.username %}
-              <span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-      </div>
-
-      <div class="form_row">
-        <label for="nickname">Nickname</label>
-        <input type="text" 
-               id="nickname" 
-               name="nickname" 
-               class="form_input {% if serializer and serializer.errors.nickname %}input_error{% endif %}" 
-               placeholder="Your nickname"
-               value="{{ initial_data.nickname|default:'' }}"
-               required>
-
-        {% if serializer and serializer.errors.nickname %}
-          <div class="field_errors">
-            {% for error in serializer.errors.nickname %}
-              <span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-      </div>
-
-      <div class="form_row">
-        <label for="email">Email</label>
-        <input type="email" 
-               id="email" 
-               name="email" 
-               class="form_input {% if serializer and serializer.errors.email %}input_error{% endif %}" 
-               placeholder="Your email"
-               value="{{ initial_data.email|default:'' }}"
-               required>
-
-        {% if serializer and serializer.errors.email %}
-          <div class="field_errors">
-            {% for error in serializer.errors.email %}
-              <span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-      </div>
-
-      <div class="form_row">
-        <label for="password">Password</label>
-        <input type="password" 
-               id="password" 
-               name="password" 
-               class="form_input {% if serializer and serializer.errors.password %}input_error{% endif %}" 
-               placeholder="Your password"
-               required>
-
-        {% if serializer and serializer.errors.password %}
-          <div class="field_errors">
-            {% for error in serializer.errors.password %}
-              <span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-      </div>
-
-      <div class="form_row">
-        <label for="password_confirm">Confirm Password</label>
-        <input type="password" 
-               id="password_confirm" 
-               name="password_confirm" 
-               class="form_input {% if serializer and serializer.errors.password_confirm %}input_error{% endif %}" 
-               placeholder="Confirm your password"
-               required>
-
-        {% if serializer and serializer.errors.password_confirm %}
-          <div class="field_errors">
-            {% for error in serializer.errors.password_confirm %}
-              <span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-      </div>
-
-      <div class="form-group file-group">
-        <label class="file-label">
-          <span class="file-text">Choose Profile Picture (optional)</span>
-          <input type="file" 
-                 id="avatar" 
-                 name="avatar" 
-                 class="file-input {% if serializer and serializer.errors.avatar %}input_error{% endif %}"
-                 accept="image/*">
-        </label>
-
-        {% if serializer and serializer.errors.avatar %}
-          <div class="field_errors">
-            {% for error in serializer.errors.avatar %}
-              <span class="error_message">{{ error }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-        <div class="file-hint">JPG, PNG or GIF. Max 5MB.</div>
-      
-      </div>
+      {% for field in form %}
+        {% include 'registration/blocks/form_field.html' %}
+      {% endfor %}
 
       <div class="form_actions">
         <button type="submit" class="auth_button">Create Account</button>
@@ -152,10 +35,7 @@
       <div class="auth_footer">
         <p>Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
       </div>
-
     </form>
-
   </section>
-  
 </main>
 {% endblock %}

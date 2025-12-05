@@ -1,7 +1,8 @@
 import random
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from myapp.models import Question, Answer, Tag, QuestionLike, AnswerLike, Profile
+from myapp.models import Question, Answer, Tag, QuestionLike, AnswerLike
+from mngusersapp.models import Profile
 from faker import Faker
 from tqdm import tqdm
 

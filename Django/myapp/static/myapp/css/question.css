@@ -8,7 +8,7 @@
     border-radius: 8px;
     display: flex;
     gap: 16px;
-    background-color: white;
+    background-color: #f8f9fa;
 }
 
 .question_info {
@@ -189,4 +189,31 @@
 
 .answer_button:hover {
     background: #0056b3;
+}
+
+.answer_button[href] {
+    display: inline-block;
+    text-decoration: none;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.answer_button[href]:hover {
+    background: #0056b3;
+}
+
+.body_main_question h2,
+.body_main_answers h2 {
+    font-size: 20px;
+    color: #495057;
+    margin-bottom: 15px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.answer_create_page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
 }

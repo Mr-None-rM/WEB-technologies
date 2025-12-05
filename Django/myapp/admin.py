@@ -1,11 +1,5 @@
 from django.contrib import admin
-from .models import User, Profile, Question, Answer, Tag, AnswerLike, QuestionLike
-
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ['nickname', 'user', 'created_at']
-    search_fields = ['nickname', 'user__username']
-    list_filter = ['created_at']
+from .models import Question, Answer, Tag, AnswerLike, QuestionLike
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):

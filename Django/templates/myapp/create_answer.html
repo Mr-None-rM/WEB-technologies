@@ -3,23 +3,26 @@
 {% load form_extras %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/question.css' %}">
 <link rel="stylesheet" href="{% static 'myapp/css/ask.css' %}">
 {% endblock %}
 
-{% block title %}Ask Page - FeatherFlow{% endblock %}
+{% block title %}Answer Question - FeatherFlow{% endblock %}
 
 {% block content %}
 <main class="body_main">
   <section class="body_main_header">
-    <h1>Ask question</h1>
+    {% include 'myapp/question_item.html' with question=question %}
   </section>
 
   <section class="body_main_question">
-    <form class="ask_question_form" method="POST" action="{% url 'ask' %}">
+    <h2>Your Answer</h2>
+
+    <form class="ask_question_form" method="POST" action="{% url 'answer_create' question.id %}">
       {% csrf_token %}
       
       {% if form.non_field_errors %}
-        <div class="error_messages">
+        <div class="form_errors">
           {% for error in form.non_field_errors %}
             <div class="error_message">{{ error }}</div>
           {% endfor %}
@@ -31,11 +34,11 @@
       {% endfor %}
 
       <div class="form_tip">
-        <small>Enter up to 5 tags separated by commas (e.g., python, django, database)</small>
+        <small>Be sure to answer the question. Provide details and share your research!</small>
       </div>
 
       <div class="form_actions">
-        <button type="submit" class="ask_question_button">Ask</button>
+        <button type="submit" class="ask_question_button">Post Answer</button>
       </div>
 
     </form>

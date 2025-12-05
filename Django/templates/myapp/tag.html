@@ -17,7 +17,7 @@
     {% endfor %}
   </section>
 
-  {% with objects=questions %}
+  {% with objects=page_obj %}
     {% include "myapp/paginator.html" %}
   {% endwith %}
   

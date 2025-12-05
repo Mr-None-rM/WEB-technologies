@@ -1,13 +1,10 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views import View
-from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import ListView, DetailView, FormView
 from django.views.decorators.http import require_POST
 from .models import Question, Answer, Tag
-from django.contrib.auth import login
-from .forms import AskQuestionForm
-from .serializers import LoginSerializer, UserRegistrationSerializer, UserSettingsSerializer
+from .forms import AskQuestionForm, AnswerForm
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.core.cache import cache
@@ -20,72 +17,6 @@ def paginate_objects(objects, page_number, per_page=5):
         return paginator.page(1)
     except EmptyPage:
         return paginator.page(paginator.num_pages)
-
-class Settings(LoginRequiredMixin, View):
-    def get(self, request):
-        serializer = UserSettingsSerializer(instance=request.user)
-        return render(request, 'registration/settings.html', {
-            'serializer': serializer,
-            'initial_data': serializer.data
-        })
-    
-    def post(self, request):
-        data = request.POST.copy()
-        if 'avatar' in request.FILES:
-            data['avatar'] = request.FILES['avatar']
-        serializer = UserSettingsSerializer(
-            instance=request.user, 
-            data=data
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return redirect('index')
-        return render(request, 'registration/settings.html', {
-            'serializer': serializer,
-            'initial_data': request.POST,
-            'user': request.user
-        })
-
-class RegisterView(View):
-    def get(self, request):
-        serializer = UserRegistrationSerializer()
-        return render(request, 'registration/register.html', {
-            'serializer': serializer
-        })
-    
-    def post(self, request):
-        data = request.POST.copy()
-        if 'avatar' in request.FILES:
-            data['avatar'] = request.FILES['avatar']
-        serializer = UserRegistrationSerializer(data=data)
-        if serializer.is_valid():
-            print("dsfsdsdfsdfsfd")
-            user = serializer.save()
-            if user:
-                login(request, user)
-                return redirect('index')
-        return render(request, 'registration/register.html', {
-            'serializer': serializer,
-            'initial_data': request.POST,
-        })
-
-class LoginView(View):
-    def get(self, request):
-        serializer = LoginSerializer()
-        return render(request, 'registration/login.html', {
-            'serializer': serializer
-        })
-    
-    def post(self, request):
-        serializer = LoginSerializer(data=request.POST)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            login(request, user)
-            return redirect('index')
-        return render(request, 'registration/login.html', {
-            'serializer': serializer,
-            'initial_data': request.POST
-        })
 
 class Index(ListView):
     model = Question
@@ -110,23 +41,30 @@ class Search(ListView):
     template_name = "myapp/search.html"
     context_object_name = 'questions'
     paginate_by = 5
-
+    
+    def dispatch(self, request, *args, **kwargs):
+        self.query = request.GET.get('q', '').strip()
+        return super().dispatch(request, *args, **kwargs)
+    
     def get_queryset(self):
-        query = self.request.GET.get('q', '').strip()
-        return Question.objects.search(query)
-
+        if not self.query:
+            return Question.objects.none()
+        return Question.objects.search(self.query)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        query = self.request.GET.get('q', '').strip()
-        context['query'] = query
-        context['page_title'] = f'Search results for "{query}"'
+        context['query'] = self.query
         return context
 
 class QuestionDetail(DetailView):
+    #Тут тоже позже понадобится поправить логику запросов к БД, тут 2 запроса с повторной логикой 
     model = Question
     template_name = "myapp/question.html"
     context_object_name = 'question'
     pk_url_kwarg = 'question_id'
+
+    def get_object(self, queryset=None):
+        return Question.objects.for_detail(self.kwargs['question_id'])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -146,17 +84,46 @@ class QuestionDetail(DetailView):
             )
         return redirect('question_detail', question_id=self.object.id)
 
-class AskQuestion(LoginRequiredMixin, CreateView):
-    model = Question
+class AskQuestion(LoginRequiredMixin, FormView):
     form_class = AskQuestionForm
     template_name = "myapp/ask.html"
-
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['author'] = self.request.user
+        return kwargs
+    
     def form_valid(self, form):
-        form.instance.author = self.request.user
+        self.question = form.save()
         return super().form_valid(form)
-
+    
     def get_success_url(self):
-        return reverse('question_detail', kwargs={'question_id': self.object.id})
+        return reverse('question_detail', kwargs={'question_id': self.question.id})
+    
+class CreateAnswerView(LoginRequiredMixin, FormView):
+    form_class = AnswerForm
+    template_name = "myapp/create_answer.html"
+    
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['author'] = self.request.user
+        kwargs['question'] = self.get_question()
+        return kwargs
+    
+    def get_question(self):
+        return Question.objects.for_detail(self.kwargs['question_id'])
+    
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['question'] = self.get_question()
+        return context
+    
+    def get_success_url(self):
+        return reverse('question_detail', kwargs={'question_id': self.get_question().id})
 
 class TagQuestions(LoginRequiredMixin, ListView):
     model = Question
@@ -236,27 +203,18 @@ def vote_answer(request, answer_id):
 @require_POST
 def toggle_accept_answer(request, answer_id):
     if not request.user.is_authenticated:
-        if request.htmx:
-            return HttpResponse(
-                '<script>window.location.href = "{}";</script>'.format(reverse('login')),
-                content_type='text/html'
-            )
-        return redirect('login')
+        return JsonResponse({'error': 'Authentication required'}, status=403)
     try:
         answer = Answer.objects.get(id=answer_id)
-        current_status = answer.is_accepted
-        if current_status:
-            answer.is_accepted = False
-            answer.save()
-        else:
-            answer.is_accepted = True
-            answer.save()
-        answer.refresh_from_db()
-        return render(request, 'myapp/answer_item.html', {
-        'answer': answer,
-        'question': answer.question,
-        'user': request.user,
-        })
+        answer.is_accepted = not answer.is_accepted
+        answer.save()
+        if request.htmx:
+            return render(request, 'myapp/answer_item.html', {
+                'answer': answer,
+                'question': answer.question,
+                'user': request.user,
+            })
+        return JsonResponse({'is_accepted': answer.is_accepted})
     except Answer.DoesNotExist:
         return JsonResponse({'error': 'Answer not found'}, status=404)
     except Exception as e:

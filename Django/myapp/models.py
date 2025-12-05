@@ -1,58 +1,13 @@
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.urls import reverse
-from .managers import QuestionManager, AnswerManager, TagManager, ProfileManager
+from .managers import QuestionManager, AnswerManager, TagManager
 from django.core.exceptions import PermissionDenied
-import os
 
 def user_profile_image_path(instance, filename):
     ext = filename.split('.')[-1]
     filename = f'profile_image.{ext}'
     return os.path.join('profiles', f'user_{instance.user.id}', filename)
-
-class Profile(models.Model):
-    
-    user = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE,
-        related_name='profile',
-        verbose_name='Пользователь'
-    )
-    
-    nickname = models.CharField(
-        max_length=50,
-        unique=True,
-        verbose_name='Никнейм'
-    )
-    
-    avatar = models.ImageField(
-        upload_to=user_profile_image_path,
-        verbose_name='Изображение профиля',
-        blank=True,
-        null=True,
-        default='profiles/default.png'
-    )
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    objects = ProfileManager()
-
-    class Meta:
-        verbose_name = 'Профиль'
-        verbose_name_plural = 'Профили'
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f'Профиль {self.nickname}'
-    
-    @property
-    def image_url(self):
-        if self.avatar and hasattr(self.avatar, 'url'):
-            return self.avatar.url
-        return '/media/profiles/default.png'
-    
-    def get_absolute_url(self):
-        return reverse('profile_view', kwargs={'user_id': self.user.id})
     
 class Tag(models.Model):
 
@@ -69,6 +24,9 @@ class Tag(models.Model):
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['name'])
+        ]
     
     def __str__(self):
         return self.name
@@ -84,6 +42,7 @@ class Question(models.Model):
     )
     
     content = models.TextField(
+        max_length=1000,
         verbose_name='Содержание вопроса'
     )
     
@@ -123,6 +82,8 @@ class Question(models.Model):
             models.Index(fields=['is_answered']),
             models.Index(fields=['rating']),
             models.Index(fields=['author', 'created_at']),
+            models.Index(fields=['title']),
+            models.Index(fields=['content'])
         ]
     
     def __str__(self):
@@ -142,13 +103,13 @@ class Question(models.Model):
     
     def _update_rating(self, old_vote_type, new_vote_type):
         rating_change = 0
-        if old_vote_type == 'like':
+        if old_vote_type == VoteType.LIKE:
             rating_change -= 1
-        elif old_vote_type == 'dislike':
+        elif old_vote_type == VoteType.DISLIKE:
             rating_change += 1
-        if new_vote_type == 'like':
+        if new_vote_type == VoteType.LIKE:
             rating_change += 1
-        elif new_vote_type == 'dislike':
+        elif new_vote_type == VoteType.DISLIKE:
             rating_change -= 1
         self.rating += rating_change
         self.save()
@@ -156,7 +117,7 @@ class Question(models.Model):
     def add_user_vote(self, user, vote_type):
         if user == self.author:
             raise ValueError("Нельзя голосовать за свой вопрос")
-        if vote_type not in ['like', 'dislike']:
+        if vote_type not in VoteType.values:
             raise ValueError("Некорректный тип голоса")
         with transaction.atomic():
             question = Question.objects.select_for_update().get(pk=self.pk)
@@ -237,13 +198,13 @@ class Answer(models.Model):
     
     def _update_rating(self, old_vote_type, new_vote_type):
         rating_change = 0
-        if old_vote_type == 'like':
+        if old_vote_type == VoteType.LIKE:
             rating_change -= 1
-        elif old_vote_type == 'dislike':
+        elif old_vote_type == VoteType.DISLIKE:
             rating_change += 1
-        if new_vote_type == 'like':
+        if new_vote_type == VoteType.LIKE:
             rating_change += 1
-        elif new_vote_type == 'dislike':
+        elif new_vote_type == VoteType.DISLIKE:
             rating_change -= 1
         self.rating += rating_change
         self.save()
@@ -251,7 +212,7 @@ class Answer(models.Model):
     def add_user_vote(self, user, vote_type):
         if user == self.author:
             raise ValueError("Нельзя голосовать за свой вопрос")
-        if vote_type not in ['like', 'dislike']:
+        if vote_type not in VoteType.values:
             raise ValueError("Некорректный тип голоса")
         with transaction.atomic():
             answer = Answer.objects.select_for_update().get(pk=self.pk)
@@ -287,12 +248,11 @@ class Answer(models.Model):
             self.save()
         return True
 
-class QuestionLike(models.Model):
+class VoteType(models.TextChoices):
+        LIKE = 'like', 'Like'
+        DISLIKE = 'dislike', 'Dislike'
 
-    VOTE_TYPES = [
-        ('like', 'Like'),
-        ('dislike', 'Dislike'),
-    ]
+class QuestionLike(models.Model):
     
     question = models.ForeignKey(
         Question,
@@ -309,8 +269,8 @@ class QuestionLike(models.Model):
 
     type = models.CharField(
         max_length=10,
-        choices=VOTE_TYPES,
-        default='like',
+        choices=VoteType.choices,
+        default=VoteType.LIKE,
         verbose_name='Тип голоса'
     )
     
@@ -333,16 +293,7 @@ class QuestionLike(models.Model):
             raise ValueError("Нельзя лайкать свой вопрос")
         super().save(*args, **kwargs)
 
-    @property
-    def is_upvote(self):
-        return self.type == 'up'
-
 class AnswerLike(models.Model):
-
-    VOTE_TYPES = [
-        ('like', 'Like'),
-        ('dislike', 'Dislike'),
-    ]
 
     answer = models.ForeignKey(
         Answer,
@@ -360,8 +311,8 @@ class AnswerLike(models.Model):
 
     type = models.CharField(
         max_length=10,
-        choices=VOTE_TYPES,
-        default='like',
+        choices=VoteType.choices,
+        default=VoteType.LIKE,
         verbose_name='Тип голоса'
     )
     
@@ -383,7 +334,3 @@ class AnswerLike(models.Model):
         if self.answer.author == self.user:
             raise ValueError("Нельзя лайкать свой ответ")
         super().save(*args, **kwargs)
-
-    @property
-    def is_upvote(self):
-        return self.type == 'up'

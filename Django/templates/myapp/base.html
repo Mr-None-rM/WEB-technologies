@@ -8,7 +8,7 @@
     {% block extra_css %}{% endblock %}
     {% block extra_js %}{% endblock %}
     <title>{% block title %}My Site Main{% endblock %}</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="{% static 'myapp/js/htmx.min.js' %}"></script>
     <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 <body>
@@ -29,8 +29,11 @@
 
     <div class="header_profile">
       {% if user.is_authenticated %}
-
-        <img src="{{ user.profile.image_url }}" alt="profile_img">
+        {% if user.profile.image_url %}
+          <img src="{{ user.profile.image_url }}" alt="profile_img">
+        {% else %}
+          <img src="media/profiles/default.png" alt="profile_img">
+        {% endif %}
 
         <div class="header_profile_info">
           <span class="profile_name">{{ user.profile.nickname }}</span> 

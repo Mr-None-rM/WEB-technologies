@@ -5,117 +5,37 @@
 {% block title %}User Settings - FeatherFlow{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'myapp/css/settings.css' %}">
+<link rel="stylesheet" href="{% static 'mngusersapp/css/settings.css' %}">
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'myapp/preview.js' %}"></script>
+<script src="{% static 'mngusersapp/js/preview.js' %}"></script>
 {% endblock %}
 
 {% block content %}
 <div class="settings-container">
     <div class="settings-card">
         <h1 class="settings-title">User Settings</h1>
-
+        
         <form method="POST" enctype="multipart/form-data" class="settings-form">
             {% csrf_token %}
-            <div class="avatar-preview">
-                <img src="{{ user.profile.image_url }}" alt="Current avatar" id="avatar-preview">
-            </div>
-
-            {% if serializer and serializer.errors.non_field_errors %}
-            <div class="form_errors">
-                {% for error in serializer.errors.non_field_errors %}
-                <div class="error_message">{{ error }}</div>
-                {% endfor %}
-            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="form_errors">
+                    {% for error in form.non_field_errors %}
+                        <div class="error_message">{{ error }}</div>
+                    {% endfor %}
+                </div>
             {% endif %}
 
-            <div class="form-group">
-                <label class="file-label">
-                    <input type="file" 
-                           id="avatar" 
-                           name="avatar" 
-                           class="file-input {% if serializer and serializer.errors.avatar %}input_error{% endif %}"
-                           accept="image/*">
-                    <span class="file-text">Change Profile Picture</span>
-                </label>
-
-                {% if serializer and serializer.errors.avatar %}
-                <div class="field_errors">
-                    {% for error in serializer.errors.avatar %}
-                    <span class="error_message">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
+            {% for field in form %}
+                {% include 'registration/blocks/form_field.html' %}
+            {% endfor %}
             
-            <div class="form-group">
-                <label for="nickname">Nickname</label>
-                <input type="text" 
-                       id="nickname" 
-                       name="nickname" 
-                       class="form_input {% if serializer and serializer.errors.nickname %}input_error{% endif %}" 
-                       value="{{ initial_data.nickname|default:user.profile.nickname }}"
-                       required>
-                {% if serializer and serializer.errors.nickname %}
-                <div class="field_errors">
-                    {% for error in serializer.errors.nickname %}
-                    <span class="error_message">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save Changes</button>
             </div>
-            
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" 
-                       id="username" 
-                       name="username" 
-                       class="form_input {% if serializer and serializer.errors.username %}input_error{% endif %}" 
-                       value="{{ initial_data.username|default:user.username }}"
-                       required>
-                {% if serializer and serializer.errors.username %}
-                <div class="field_errors">
-                    {% for error in serializer.errors.username %}
-                    <span class="error_message">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" 
-                       id="email" 
-                       name="email" 
-                       class="form_input {% if serializer and serializer.errors.email %}input_error{% endif %}" 
-                       value="{{ initial_data.email|default:user.email }}"
-                       required>
-                {% if serializer and serializer.errors.email %}
-                <div class="field_errors">
-                    {% for error in serializer.errors.email %}
-                    <span class="error_message">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            
-            <button type="submit" class="btn-primary">Save Changes</button>
         </form>
     </div>
 </div>
-
-<script>
-document.getElementById('avatar').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('avatar-preview').src = e.target.result;
-        }
-        reader.readAsDataURL(file);
-    }
-});
-</script>
 {% endblock %}

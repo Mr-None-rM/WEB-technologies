@@ -11,7 +11,14 @@
     {% include 'myapp/question_item.html' with question=question %}
   </section>
 
+  {% if user != question.author %}
+    <a href="{% url 'answer_create' question.id %}" class="answer_button">
+      Write your Answer
+    </a>
+  {% endif %}
+
   <section class="body_main_answers">
+    <h2>Answers</h2>
 
     {% for answer in answers %}
     {% include 'myapp/answer_item.html' with answer=answer question=question user=user %}
@@ -27,17 +34,6 @@
   {% endwith %}
 
   </section>
-
-  {% if user != question.author %}
-    <section class="main_answer">
-      <form class="answer_form" method="post" action="{% url 'question_detail' question.id %}">
-        {% csrf_token %}
-        <textarea class="answer_field" placeholder="Write your answer" name="answer_content" required></textarea>
-        <br>
-        <button type="submit" class="answer_button">Answer</button>
-      </form>
-    </section>
-  {% endif %}
   
 </main>
 {% endblock %}
