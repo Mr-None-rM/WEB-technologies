@@ -1,0 +1,39 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/question.css' %}">
+{% endblock %}
+{% block title %}Question Page - FeatherFlow{% endblock %}
+{% block content %}
+<main class="body_main">
+
+  <section class="body_main_header">
+    {% include 'myapp/question_item.html' with question=question %}
+  </section>
+
+  {% if user != question.author %}
+    <a href="{% url 'answer_create' question.id %}" class="answer_button">
+      Write your Answer
+    </a>
+  {% endif %}
+
+  <section class="body_main_answers">
+    <h2>Answers</h2>
+
+    {% for answer in answers %}
+    {% include 'myapp/answer_item.html' with answer=answer question=question user=user %}
+    {% empty %}
+    <div class="no-questions" style="text-align: center; padding: 40px; color: #666;">
+        <h3>No answers yet</h3>
+        <p>Be the first to answer that question!</p>
+    </div>
+    {% endfor %}
+
+  {% with objects=answers %}
+    {% include "myapp/paginator.html" %}
+  {% endwith %}
+
+  </section>
+  
+</main>
+{% endblock %}

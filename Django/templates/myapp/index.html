@@ -1,0 +1,39 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/index.css' %}">
+{% endblock %}
+
+{% block title %}Home Page - FeatherFlow{% endblock %}
+
+{% block content %}
+<main class="body_main">
+
+  <section class="body_main_header">
+    {% if 'hot' in request.path %}
+      <h1>Hot questions</h1>
+      <a href="{% url 'index' %}" class="body_main_header_hot_questions">New questions</a>
+    {% else %}
+      <h1>New questions</h1>
+      <a href="{% url 'hot' %}" class="body_main_header_hot_questions">Hot questions</a>
+    {% endif %}
+  </section>
+
+  <section class="body_main_questions">
+    {% for question in questions %}
+      {% include 'myapp/question_item.html' with question=question %}
+    {% empty %}
+    <div class="no-questions" style="text-align: center; padding: 40px; color: #666;">
+        <h3>No questions yet</h3>
+        <p>Be the first to ask a question!</p>
+    </div>
+    {% endfor %}
+  </section>
+
+  {% with objects=page_obj %}
+    {% include "myapp/paginator.html" %}
+  {% endwith %}
+  
+</main>
+{% endblock %}

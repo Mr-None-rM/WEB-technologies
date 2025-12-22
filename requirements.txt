@@ -1,0 +1,8 @@
+Django==4.2.16
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+pillow==10.4.0
+django-htmx==1.19.0
+djangorestframework==3.14.0
+Faker==24.9.0
+tqdm==4.66.1

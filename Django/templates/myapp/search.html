@@ -1,0 +1,30 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/index.css' %}">
+{% endblock %}
+{% block title %}Search - FeatherFlow{% endblock %}
+{% block content %}
+<main class="body_main">
+
+  <section class="body_main_header">
+    <h1>Search result for: "{{ query }}"</h1>
+  </section>
+
+  <section class="body_main_questions">
+    {% for question in questions %}
+      {% include 'myapp/question_item.html' with question=question %}
+    {% empty %}
+    <div class="no-results">
+        <h3>No results found for "{{ query }}"</h3>
+    </div>
+    {% endfor %}
+
+  </section>
+
+  {% with objects=questions %}
+    {% include "myapp/paginator.html" %}
+  {% endwith %}
+  
+</main>
+{% endblock %}
