@@ -1,0 +1,41 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+{% load form_extras %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'mngusersapp/css/auth.css' %}">
+{% endblock %}
+{% block title %}Register - FeatherFlow{% endblock %}
+{% block content %}
+<main class="auth_main">
+  <section class="auth_container">
+    <div class="auth_header">
+      <h1>Sign Up</h1>
+      <p>Create your account</p>
+    </div>
+
+    <form class="auth_form" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <div class="form_errors">
+          {% for error in form.non_field_errors %}
+            <div class="error_message">{{ error }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% for field in form %}
+        {% include 'registration/blocks/form_field.html' %}
+      {% endfor %}
+
+      <div class="form_actions">
+        <button type="submit" class="auth_button">Create Account</button>
+      </div>
+
+      <div class="auth_footer">
+        <p>Already have an account? <a href="{% url 'login' %}">Sign in</a></p>
+      </div>
+    </form>
+  </section>
+</main>
+{% endblock %}

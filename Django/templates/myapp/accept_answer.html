@@ -1,0 +1,12 @@
+<span id="accept-wrapper-{{ answer.id }}">
+    <input class="answer_flag" type="checkbox"
+        hx-post="{% url 'toggle_accept_answer' answer.id %}"
+        hx-trigger="change"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        hx-target="closest .answer"
+        hx-swap="outerHTML"
+        {% if answer.is_accepted %}checked{% endif %}>
+    <span class="accept-label">
+        {% if answer.is_accepted %}✓ Accepted{% else %}Accept{% endif %}
+    </span>
+</span>

@@ -1,0 +1,21 @@
+{% block paginator %}
+  {% if objects.has_other_pages %}
+  <section class="main_paginator">
+    {% if objects.has_previous %}
+      <a href="?page=1" class="paginator-btn paginator-first">First</a>
+      <a href="?page={{ objects.previous_page_number }}" class="paginator-btn paginator-prev">Previous</a>
+    {% endif %}
+    {% for num in objects.paginator.page_range %}
+      {% if objects.number == num %}
+        <span class="paginator-btn paginator-current">{{ num }}</span>
+      {% elif num > objects.number|add:'-3' and num < objects.number|add:'3' %}
+        <a href="?page={{ num }}" class="paginator-btn">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if objects.has_next %}
+      <a href="?page={{ objects.next_page_number }}" class="paginator-btn paginator-next">Next</a>
+      <a href="?page={{ objects.paginator.num_pages }}" class="paginator-btn paginator-last">Last</a>
+    {% endif %}
+  </section>
+  {% endif %}
+{% endblock %}

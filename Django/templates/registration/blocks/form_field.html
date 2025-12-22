@@ -1,0 +1,107 @@
+{% load static %}
+
+<div class="form_row">
+  <label for="id_{{ field.name }}">
+    {{ field.label }}
+    {% if field.field.required %}<span class="field_required">*</span>{% endif %}
+  </label>
+
+  {% if field.field.widget.input_type == 'text' %}
+    <input
+      class="form_input {% if field.errors %}input_error{% endif %}"
+      id="id_{{ field.name }}"
+      type="{{ field.field.widget.input_type }}"
+      name="{{ field.name }}"
+      placeholder="{{ field.field.widget.attrs.placeholder|default:field.label }}"
+      value="{{ field.value|default_if_none:'' }}"
+      {% if field.field.required %}required{% endif %}
+      {% if field.field.disabled %}disabled{% endif %}
+    >
+  
+  {% elif field.field.widget.input_type == 'password' %}
+    <input
+      class="form_input {% if field.errors %}input_error{% endif %}"
+      id="id_{{ field.name }}"
+      type="password"
+      name="{{ field.name }}"
+      placeholder="{{ field.field.widget.attrs.placeholder|default:field.label }}"
+      {% if field.field.required %}required{% endif %}
+      {% if field.field.disabled %}disabled{% endif %}
+    >
+  
+  {% elif field.field.widget.input_type == 'email' %}
+    <input
+      class="form_input {% if field.errors %}input_error{% endif %}"
+      id="id_{{ field.name }}"
+      type="email"
+      name="{{ field.name }}"
+      placeholder="{{ field.field.widget.attrs.placeholder|default:field.label }}"
+      value="{{ field.value|default_if_none:'' }}"
+      {% if field.field.required %}required{% endif %}
+      {% if field.field.disabled %}disabled{% endif %}
+    >
+  
+  {% elif field.field.widget.input_type == 'file' %}
+    {% if field.name == 'avatar' %}
+
+      <div class="avatar-upload-group" data-field-name="{{ field.name }}">
+        <div class="avatar-preview-container">
+          <img src="{{ user.profile.image_url }}" 
+               alt="Current avatar" 
+               id="avatar-preview-{{ field.name }}"
+               class="avatar-preview-image"
+               data-preview-for="{{ field.name }}">
+        </div>
+    
+        <label class="file-label avatar-file-label">
+          <input
+            class="file-input avatar-input {% if field.errors %}input_error{% endif %}"
+            id="id_{{ field.name }}"
+            type="file"
+            name="{{ field.name }}"
+            accept="{{ field.field.widget.attrs.accept|default:'image/*' }}"
+            {% if field.field.required %}required{% endif %}
+            {% if field.field.disabled %}disabled{% endif %}
+            data-preview-target="avatar-preview-{{ field.name }}"
+          >
+          <span class="file-text">Choose {{ field.label|lower }}</span>
+        </label>
+
+        <div class="file-hint avatar-hint">
+          JPG, PNG or GIF. Max 5MB.
+        </div>
+      </div>
+    
+    {% else %}
+      <label class="file-label">
+        <input
+          class="file-input {% if field.errors %}input_error{% endif %}"
+          id="id_{{ field.name }}"
+          type="file"
+          name="{{ field.name }}"
+          accept="{{ field.field.widget.attrs.accept|default:'*/*' }}"
+          {% if field.field.required %}required{% endif %}
+          {% if field.field.disabled %}disabled{% endif %}
+        >
+        <span class="file-text">Choose {{ field.label|lower }}</span>
+      </label>
+    {% endif %}
+  
+  {% else %}
+    {{ field }}
+  {% endif %}
+
+  {% if field.help_text %}
+    <div class="form_hint">
+      <span class="hint_text">{{ field.help_text|safe }}</span>
+    </div>
+  {% endif %}
+
+  {% if field.errors %}
+    <div class="field_errors">
+      {% for error in field.errors %}
+        <span class="error_message">{{ error }}</span>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

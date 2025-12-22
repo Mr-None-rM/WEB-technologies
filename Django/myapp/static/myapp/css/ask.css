@@ -1,0 +1,133 @@
+.body_main_header {
+    margin-bottom: 30px;
+}
+
+.body_main_header h1 {
+    font-weight: 300;
+    margin: 0;
+    color: #0c0d0e;
+}
+
+.body_main_question {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.ask_question_form {
+    background: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form_row {
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.form_row label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+    font-size: 16px;
+    width: auto;
+    text-align: left;
+    padding-top: 0;
+}
+
+.field_required {
+    color: #dc3545;
+}
+
+.form_input,
+.form_textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.2s ease-out;
+}
+
+.form_input:focus,
+.form_textarea:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.form_textarea {
+    min-height: 200px;
+    resize: vertical;
+    line-height: 1.4;
+    max-height: 600px;
+}
+
+.field_errors {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.error_message {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.field_error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.input_error {
+    border-color: #dc3545;
+}
+
+.form_hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.hint_text {
+    display: block;
+}
+
+.form_actions {
+    margin-top: 2rem;
+}
+
+.ask_question_button {
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s ease-out;
+}
+
+.ask_question_button:hover {
+    background: #0056b3;
+}
+
+.form_errors {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #f5c6cb;
+}
+
+.input_container {
+    display: block;
+    width: 100%;
+}

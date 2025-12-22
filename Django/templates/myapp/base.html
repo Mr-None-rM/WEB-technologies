@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'myapp/css/base.css' %}" />
+    {% block extra_css %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+    <title>{% block title %}My Site Main{% endblock %}</title>
+    <script src="{% static 'myapp/js/htmx.min.js' %}"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+
+  <header>
+
+    <a href="{% url 'index' %}" class="header-logo-link">
+      <span>FeatherFlow</span>
+      <img src="{% static 'myapp/images/logo.png' %}" alt="logo_img">
+    </a>
+
+    <form method="get" action="{% url 'search' %}" class="search-form">
+      <input type="text" name="q" class="header_search" placeholder="Search" value="{{ request.GET.q }}" required>
+      <button type="submit" style="display: none;">Search</button>
+    </form>
+
+    <a href="{% url 'ask' %}" class="header_button_ask">Ask</a>
+
+    <div class="header_profile">
+      {% if user.is_authenticated %}
+        {% if user.profile.image_url %}
+          <img src="{{ user.profile.image_url }}" alt="profile_img">
+        {% else %}
+          <img src="media/profiles/default.png" alt="profile_img">
+        {% endif %}
+
+        <div class="header_profile_info">
+          <span class="profile_name">{{ user.profile.nickname }}</span> 
+          <div class="header_profile_settings">
+            <a href="{% url 'settings' %}" class="profile-btn">settings</a>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+              {% csrf_token %}
+              <button type="submit" class="profile-btn logout-btn">log out</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="header_profile_info">
+          <div class="header_profile_settings">
+            <a href="{% url 'login' %}" class="profile-btn">log in</a>
+            <a href="{% url 'register' %}" class="profile-btn">registration</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </header>
+
+  <div class="body">
+    {% block content %}
+    {% endblock %}
+    {% block sidebar %}
+
+    <aside class="body_asside">
+
+      <section class="body_asside_tags">
+        <h2>Popular Tags</h2>
+        <div class="body_asside_popular_tags">
+          {% for tag in popular_tags %}
+            <a href="{% url 'tag_questions' tag.id %}" class="tag-link">
+              {{ tag.name }}
+              <span class="tag-count">({{ tag.questions_count }})</span>
+            </a>
+          {% empty %}
+            <div class="no-data">No tags yet</div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="body_asside_questions">
+        <h2>Hot Questions</h2>
+        <div class="body_asside_hot_questions">
+          {% for question in popular_questions %}
+            <a href="{% url 'question_detail' question.id %}" class="question-link">
+              {{ question.title|truncatewords:6 }}
+              <span class="question-rating">{{ question.rating }} ▲</span>
+            </a>
+          {% empty %}
+            <div class="no-data">No questions yet</div>
+          {% endfor %}
+        </div>
+      </section>
+
+    </aside>
+
+    {% endblock %}
+  </div>
+
+</body>
+</html>
