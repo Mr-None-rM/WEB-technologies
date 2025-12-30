@@ -1,13 +1,32 @@
+import json
+import time
+import jwt
+import requests
+from django.conf import settings
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, DetailView, FormView
-from django.views.decorators.http import require_POST
+from django.views.generic import ListView, DetailView, FormView, TemplateView
+from django.views.decorators.http import require_POST, require_GET
 from .models import Question, Answer, Tag
 from .forms import AskQuestionForm, AnswerForm
 from django.http import JsonResponse, HttpResponse
 from django.urls import reverse
 from django.core.cache import cache
+from cent import Client, PublishRequest
+
+def generate_token(user_id):
+    token = jwt.encode({
+        "sub": str(user_id),
+        "exp": int(time.time() * 10 * 60),
+    }, settings.CENTRIFUGO_HMAC_SECRET, algorithm="HS256")
+    return token
+
+def publish_to_centrifuge(channel, data):
+    api_url = f"http://centrifugo:8010/api"
+    client = Client(api_url, settings.CENTRIFUGO_API_KEY)
+    request = PublishRequest(channel=channel, data=data)
+    client.publish(request)
 
 def paginate_objects(objects, page_number, per_page=5):
     paginator = Paginator(objects, per_page)
@@ -55,6 +74,22 @@ class Search(ListView):
         context = super().get_context_data(**kwargs)
         context['query'] = self.query
         return context
+    
+class SearchPopupView(TemplateView):
+    template_name = "myapp/search_popup.html"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = self.request.GET.get('q', '').strip()
+        context['query'] = query
+        if query:
+            questions = Question.objects.search(query)[:5]
+            context['questions'] = questions
+            context['show_more'] = Question.objects.search(query).count() > 5
+        else:
+            context['questions'] = Question.objects.none()
+            context['show_more'] = False
+            
+        return context
 
 class QuestionDetail(DetailView):
     #Тут тоже позже понадобится поправить логику запросов к БД, тут 2 запроса с повторной логикой 
@@ -71,18 +106,15 @@ class QuestionDetail(DetailView):
         answers = Answer.objects.for_question(self.object.id)
         page = self.request.GET.get('page')
         context['answers'] = paginate_objects(answers, page, per_page=5)
+        if self.request.user.is_authenticated:
+            context['centrifuge_token'] = generate_token(self.request.user.pk)
+            context['centrifuge_url'] = settings.CENTRIFUGO_URL
+            context['centrifuge_channel'] = f"question_{self.object.id}"
+        else:
+            context['centrifuge_token'] = None
+            context['centrifuge_url'] = None
+            context['centrifuge_channel'] = None
         return context
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        answer_content = request.POST.get('answer_content')
-        if answer_content and request.user.is_authenticated:
-            Answer.objects.create(
-                content=answer_content,
-                question=self.object,
-                author=request.user
-            )
-        return redirect('question_detail', question_id=self.object.id)
 
 class AskQuestion(LoginRequiredMixin, FormView):
     form_class = AskQuestionForm
@@ -114,7 +146,22 @@ class CreateAnswerView(LoginRequiredMixin, FormView):
         return Question.objects.for_detail(self.kwargs['question_id'])
     
     def form_valid(self, form):
-        form.save()
+        answer = form.save()
+        profile_image_url = '/media/profiles/default.png'
+        if hasattr(self.request.user, 'profile') and self.request.user.profile.image_url:
+            profile_image_url = self.request.user.profile.image_url
+        answer_data = {
+            'type': 'new_answer',
+            'answer_id': answer.id,
+            'content': answer.content[:500],
+            'author_id': self.request.user.id,
+            'author_username': self.request.user.username,
+            'profile_image_url': profile_image_url,
+            'created_at': answer.created_at.isoformat(),
+            'question_id': self.get_question().id
+        }
+        channel = f"question_{self.get_question().id}"
+        publish_to_centrifuge(channel, answer_data)
         return super().form_valid(form)
     
     def get_context_data(self, **kwargs):

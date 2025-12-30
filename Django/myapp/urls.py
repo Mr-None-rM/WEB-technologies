@@ -13,4 +13,5 @@ urlpatterns = [
     path('question/<int:question_id>/answer/', views.CreateAnswerView.as_view(), name='answer_create'),
     path('answer/<int:answer_id>/vote/', views.vote_answer, name='vote_answer'),
     path('answer/<int:answer_id>/toggle_accept/', views.toggle_accept_answer, name='toggle_accept_answer'),
+    path('search/popup/', views.SearchPopupView.as_view(), name='search_popup'),
 ]

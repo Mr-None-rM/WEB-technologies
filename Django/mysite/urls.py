@@ -18,11 +18,30 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
+import time
+import json
+
+def test_view(request):
+    time.sleep(0.05)
+    data = {
+        'timestamp': time.time(),
+        'method': request.method,
+        'path': request.path,
+        'static': False,
+        'message': 'Dynamic content from Django',
+        'data': 'x' * 10000,
+    }
+    return HttpResponse(
+        json.dumps(data),
+        content_type='application/json'
+    )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include("myapp.urls")),
     path('', include('mngusersapp.urls')),
+    path('test/', test_view, name='test'),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,32 @@
+{
+  "address": "0.0.0.0",
+  "client": {
+    "token": {
+      "hmac_secret_key": "secret"
+    },
+    "allowed_origins": ["*"]
+  },
+  "admin": {
+    "enabled": true,
+    "password": "password",
+    "secret": "secret"
+  },
+  "http_api": {
+    "key": "secret"
+  },
+  "http_server": {
+    "port": 8010
+  },
+  "channel": {
+    "without_namespace": {
+      "allow_subscribe_for_client": true
+    }
+  },
+  "history_size": 100,
+  "history_ttl": "300s",
+  "log_level": "debug",
+  "log_handler": {
+    "level": "debug",
+    "file": "/centrifugo/logs/centrifugo.log"
+  }
+}

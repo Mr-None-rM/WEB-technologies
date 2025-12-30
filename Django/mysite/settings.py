@@ -28,8 +28,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-fallback-key-for-developme
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
 
 # ALLOWED_HOSTS
-allowed_hosts = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost')
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',')]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -148,3 +147,9 @@ LOGOUT_REDIRECT_URL = '/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+CENTRIFUGO_URL = "localhost:8010"
+
+CENTRIFUGO_API_KEY = "secret"
+
+CENTRIFUGO_HMAC_SECRET = "secret"

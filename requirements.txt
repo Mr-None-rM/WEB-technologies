@@ -6,3 +6,6 @@ django-htmx==1.19.0
 djangorestframework==3.14.0
 Faker==24.9.0
 tqdm==4.66.1
+gunicorn==21.2.0
+pyjwt==2.8.0
+cent==5.2.0

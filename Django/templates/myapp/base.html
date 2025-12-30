@@ -20,10 +20,24 @@
       <img src="{% static 'myapp/images/logo.png' %}" alt="logo_img">
     </a>
 
-    <form method="get" action="{% url 'search' %}" class="search-form">
-      <input type="text" name="q" class="header_search" placeholder="Search" value="{{ request.GET.q }}" required>
-      <button type="submit" style="display: none;">Search</button>
-    </form>
+    <div class="search-container">
+      <form class="search-form" 
+            hx-get="{% url 'search_popup' %}" 
+            hx-target="#search-results-popup"
+            hx-trigger="input delay:300ms"
+            hx-swap="innerHTML"
+            hx-indicator="#search-loading">
+          <input type="text" 
+                name="q" 
+                id="search-input"
+                class="header_search" 
+                placeholder="Search questions..." 
+                value="{{ request.GET.q }}" 
+                autocomplete="off">
+          <button type="submit" style="display: none;">Search</button>
+      </form>
+      <div id="search-results-popup" class="search-popup"></div>
+    </div>
 
     <a href="{% url 'ask' %}" class="header_button_ask">Ask</a>
 
@@ -96,6 +110,78 @@
 
     {% endblock %}
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const searchPopup = document.getElementById('search-results-popup');
+    let hideTimeout = null;
+    
+    function showPopup() {
+        if (hideTimeout) clearTimeout(hideTimeout);
+        searchPopup.classList.add('show');
+    }
+    
+    function hidePopup() {
+        hideTimeout = setTimeout(() => {
+            searchPopup.classList.remove('show');
+        }, 200);
+    }
+    
+    searchInput.addEventListener('focus', function() {
+        if (searchPopup.innerHTML.trim()) {
+            showPopup();
+        }
+    });
+    
+    searchInput.addEventListener('blur', hidePopup);
+    
+    searchPopup.addEventListener('mouseenter', function() {
+        if (hideTimeout) clearTimeout(hideTimeout);
+    });
+    
+    searchPopup.addEventListener('mouseleave', hidePopup);
+    
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.target.id === 'search-results-popup') {
+            const hasContent = event.detail.elt.innerHTML.trim() !== '';
+            
+            if (hasContent) {
+                showPopup();
+            } else {
+                searchPopup.classList.remove('show');
+            }
+        }
+    });
+    
+    document.body.addEventListener('htmx:beforeRequest', function(event) {
+        if (event.target.classList.contains('search-form')) {
+            const formData = new FormData(event.target);
+            const query = formData.get('q');
+            
+            if (!query || query.trim() === '') {
+                searchPopup.innerHTML = '';
+                searchPopup.classList.remove('show');
+            }
+        }
+    });
+    
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && searchPopup.classList.contains('show')) {
+            searchPopup.classList.remove('show');
+            searchInput.blur();
+        }
+    });
+    
+    document.addEventListener('click', function(event) {
+        if (!searchPopup.contains(event.target) && 
+            !searchInput.contains(event.target) &&
+            searchPopup.classList.contains('show')) {
+            searchPopup.classList.remove('show');
+        }
+    });
+});
+</script>
 
 </body>
 </html>

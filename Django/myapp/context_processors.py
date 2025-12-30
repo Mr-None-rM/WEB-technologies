@@ -1,5 +1,6 @@
 from django.core.cache import cache
 from .models import QuestionLike, AnswerLike, Tag, Question
+from django.core.management import call_command
 
 def voting_context(request):
     if not request.user.is_authenticated:
@@ -26,34 +27,21 @@ def voting_context(request):
     }
 
 def sidebar_context(request):
-    cache_key = "sidebar_data"
-    cached_data = cache.get(cache_key)
+    cached_data = cache.get('sidebar_data')
+    
     if cached_data is None:
-        popular_tags = Tag.objects.popular(8)
-        popular_questions = Question.objects.hot_sidebar(5)
-        cached_data = {
-            'popular_tags': [
-                {'id': tag.id, 'name': tag.name, 'questions_count': getattr(tag, 'questions_count', 0)}
-                for tag in popular_tags
-            ],
-            'popular_questions': [
-                {
-                    'id': q.id, 
-                    'title': q.title, 
-                    'rating': q.rating,
-                    'author_name': q.author.username
-                }
-                for q in popular_questions
-            ]
+        call_command('update_sidebar_cache')
+        cached_data = cache.get('sidebar_data') or {
+            'popular_tags': [],
+            'popular_questions': [],
         }
-        cache.set(cache_key, cached_data, 300)
-
-    class Object:
+    
+    class SimpleObject:
         def __init__(self, **kwargs):
-            for key, value in kwargs.items():
-                setattr(self, key, value)
-
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+    
     return {
-        'popular_tags': [Object(**tag) for tag in cached_data['popular_tags']],
-        'popular_questions': [Object(**q) for q in cached_data['popular_questions']],
+        'popular_tags': [SimpleObject(**tag) for tag in cached_data['popular_tags']],
+        'popular_questions': [SimpleObject(**q) for q in cached_data['popular_questions']],
     }
