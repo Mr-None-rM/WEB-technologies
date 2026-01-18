@@ -1,0 +1,284 @@
+1) PS C:\Users\matvei\WEB-technologies> docker-compose exec web ab -n 1000 -c 10 http://nginx/static/myapp/css/index.css
+This is ApacheBench, Version 2.3 <$Revision: 1923142 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking nginx (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        nginx/1.24.0
+Server Hostname:        nginx
+Server Port:            80
+
+Document Path:          /static/myapp/css/index.css
+Document Length:        1839 bytes
+
+Concurrency Level:      10
+Time taken for tests:   1.198 seconds
+Complete requests:      1000
+Failed requests:        0
+Total transferred:      2188000 bytes
+HTML transferred:       1839000 bytes
+Requests per second:    834.97 [#/sec] (mean)
+Time per request:       11.976 [ms] (mean)
+Time per request:       1.198 [ms] (mean, across all concurrent requests)
+Transfer rate:          1784.11 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    2   3.2      1      27
+Processing:     2    9   8.2      7      70
+Waiting:        1    7   7.3      5      70
+Total:          2   11   9.0      8      86
+
+Percentage of the requests served within a certain time (ms)
+  50%      8
+  66%     11
+  75%     14
+  80%     16
+  90%     23
+  95%     29
+  98%     36
+  99%     42
+ 100%     86 (longest request)
+
+2) PS C:\Users\matvei\WEB-technologies> docker-compose exec web ab -n 1000 -c 10 http://localhost:8000/static/myapp/css/index.css
+This is ApacheBench, Version 2.3 <$Revision: 1923142 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        gunicorn
+Server Hostname:        localhost
+Server Port:            8000
+
+Document Path:          /static/myapp/css/index.css
+Document Length:        4851 bytes
+
+Concurrency Level:      10
+Time taken for tests:   5.457 seconds
+Complete requests:      1000
+Failed requests:        0
+Non-2xx responses:      1000
+Total transferred:      5154000 bytes
+HTML transferred:       4851000 bytes
+Requests per second:    183.26 [#/sec] (mean)
+Time per request:       54.567 [ms] (mean)
+Time per request:       5.457 [ms] (mean, across all concurrent requests)
+Transfer rate:          922.39 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:    22   52  18.0     48     294
+Waiting:       21   51  17.2     47     288
+Total:         22   52  18.0     48     295
+
+Percentage of the requests served within a certain time (ms)
+  50%     48
+  66%     54
+  75%     59
+  80%     62
+  90%     69
+  95%     77
+  98%     81
+  99%    120
+ 100%    295 (longest request)
+
+3) PS C:\Users\matvei\WEB-technologies> docker-compose exec web ab -n 1000 -c 10 http://localhost:8000/test/    
+This is ApacheBench, Version 2.3 <$Revision: 1923142 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking localhost (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        gunicorn
+Server Hostname:        localhost
+Server Port:            8000
+
+Document Path:          /test/
+Document Length:        10138 bytes
+
+Concurrency Level:      10
+Time taken for tests:   17.363 seconds
+Complete requests:      1000
+Failed requests:        792
+   (Connect: 0, Receive: 0, Length: 792, Exceptions: 0)
+Total transferred:      10427737 bytes
+HTML transferred:       10138737 bytes
+Requests per second:    57.59 [#/sec] (mean)
+Time per request:       173.630 [ms] (mean)
+Time per request:       17.363 [ms] (mean, across all concurrent requests)
+Transfer rate:          586.50 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       2
+Processing:    52  172  24.5    156     210
+Waiting:       51  171  24.5    155     208
+Total:         52  172  24.5    156     210
+
+Percentage of the requests served within a certain time (ms)
+  50%    156
+  66%    163
+  75%    205
+  80%    207
+  90%    208
+  95%    208
+  98%    208
+  99%    209
+ 100%    210 (longest request)
+
+4) PS C:\Users\matvei\WEB-technologies> docker-compose exec web ab -n 1000 -c 10 -k http://nginx/test_no_cashe/
+This is ApacheBench, Version 2.3 <$Revision: 1923142 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking nginx (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        nginx/1.24.0
+Server Hostname:        nginx
+Server Port:            80
+
+Document Path:          /test_no_cashe/
+Document Length:        10139 bytes
+
+Concurrency Level:      10
+Time taken for tests:   17.395 seconds
+Complete requests:      1000
+Failed requests:        212
+   (Connect: 0, Receive: 0, Length: 212, Exceptions: 0)
+Keep-Alive requests:    1000
+Total transferred:      10436757 bytes
+HTML transferred:       10138757 bytes
+Requests per second:    57.49 [#/sec] (mean)
+Time per request:       173.951 [ms] (mean)
+Time per request:       17.395 [ms] (mean, across all concurrent requests)
+Transfer rate:          585.92 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:    52  173  25.6    157     210
+Waiting:       52  173  25.6    157     210
+Total:         52  173  25.6    157     210
+
+Percentage of the requests served within a certain time (ms)
+  50%    157
+  66%    158
+  75%    207
+  80%    208
+  90%    208
+  95%    208
+  98%    209
+  99%    209
+ 100%    210 (longest request)
+
+5) PS C:\Users\matvei\WEB-technologies> docker-compose exec web ab -n 1000 -c 10 -k http://nginx/test_with_cashe/
+This is ApacheBench, Version 2.3 <$Revision: 1923142 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking nginx (be patient)
+Completed 100 requests
+Completed 200 requests
+Completed 300 requests
+Completed 400 requests
+Completed 500 requests
+Completed 600 requests
+Completed 700 requests
+Completed 800 requests
+Completed 900 requests
+Completed 1000 requests
+Finished 1000 requests
+
+
+Server Software:        nginx/1.24.0
+Server Hostname:        nginx
+Server Port:            80
+
+Document Path:          /test_with_cashe/
+Document Length:        10138 bytes
+
+Concurrency Level:      10
+Time taken for tests:   0.195 seconds
+Complete requests:      1000
+Failed requests:        0
+Keep-Alive requests:    1000
+Total transferred:      10457004 bytes
+HTML transferred:       10138000 bytes
+Requests per second:    5128.34 [#/sec] (mean)
+Time per request:       1.950 [ms] (mean)
+Time per request:       0.195 [ms] (mean, across all concurrent requests)
+Transfer rate:          52370.15 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:        0    0   0.1      0       1
+Processing:     0    1   2.1      2      56
+Waiting:        0    1   2.0      2      55
+Total:          0    1   2.1      2      56
+
+Percentage of the requests served within a certain time (ms)
+  50%      2
+  66%      2
+  75%      2
+  80%      3
+  90%      3
+  95%      3
+  98%      3
+  99%      3
+ 100%     56 (longest request)
+
+Вывод: использование nginx для отдачи статического контента намного быстрее чем использовать напрямую gunicorn;
+при отдаче динамического контента nginx без кэширования и gunicorn показали схожие результаты, но использование
+кэша позволило увеличить скорость отдачи контента в десятки раз
+

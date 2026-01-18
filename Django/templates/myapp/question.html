@@ -1,0 +1,146 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/question.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/centrifuge@5.4.0/dist/centrifuge.js"></script>
+{% endblock %}
+
+{% block title %}Question Page - FeatherFlow{% endblock %}
+
+{% block content %}
+<main class="body_main">
+  <section class="body_main_header">
+    {% include 'myapp/question_item.html' with question=question %}
+  </section>
+
+  {% if user != question.author %}
+    <a href="{% url 'answer_create' question.id %}" class="answer_button">
+      Write your Answer
+    </a>
+  {% endif %}
+
+  <section class="body_main_answers">
+    <h2>Answers (<span id="answers-count">{{ answers.paginator.count }}</span>)</h2>
+
+    <div id="answers-container">
+      {% for answer in answers %}
+        {% include 'myapp/answer_item.html' with answer=answer question=question user=user %}
+      {% empty %}
+        <div id="no-answers" class="no-questions" style="text-align: center; padding: 40px; color: #666;">
+          <h3>No answers yet</h3>
+          <p>Be the first to answer that question!</p>
+        </div>
+      {% endfor %}
+      
+      <div id="answer-template" class="answer-item template" style="display: none;" data-search="answer-template">
+        <div class="answer-content">
+          <p class="answer-text" data-search="answer-template-text"></p>
+          <div class="answer-meta">
+            <span class="answer-author" data-search="answer-template-author"></span>
+            <time class="answer-time" data-search="answer-template-created-at"></time>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% with objects=answers %}
+      {% include "myapp/paginator.html" %}
+    {% endwith %}
+  </section>
+</main>
+
+{% if centrifuge_token and centrifuge_url and centrifuge_channel %}
+<script>
+  const CENTRIFUGO_URL = "{{ centrifuge_url }}";
+  const CENTRIFUGO_TOKEN = "{{ centrifuge_token }}";
+  const CENTRIFUGO_CHANNEL = "{{ centrifuge_channel }}";
+
+  const centrifuge = new Centrifuge(`ws://${CENTRIFUGO_URL}/connection/websocket`, { token: CENTRIFUGO_TOKEN })
+
+  centrifuge
+    .on('connecting', function (ctx) {
+      console.log(`connecting: ${ctx.code}, ${ctx.reason}`);
+    })
+    .on('connected', function (ctx) {
+      console.log(`connected over ${ctx.transport}`);
+    })
+    .on('disconnected', function (ctx) {
+      console.log(`disconnected: ${ctx.code}, ${ctx.reason}`);
+    })
+    .connect();
+
+  const sub = centrifuge.newSubscription(CENTRIFUGO_CHANNEL);
+
+  sub
+    .on('publication', function (ctx) {
+        const data = ctx.data;
+        const answer = data.message || data;
+        const answer_id = answer.answer_id;
+        const content = answer.content;
+        const author_id = answer.author_id;
+        const author_username = answer.author_username;
+        const profile_image_url = answer.profile_image_url;
+        const created_at = answer.created_at;
+        const question_id = answer.question_id;
+        const empty = document.getElementById('no-answers');
+        if (empty) empty.remove();
+        const answerEl = document.createElement('div');
+        answerEl.className = 'answer';
+        answerEl.id = `answer-${answer_id}`;
+        answerEl.innerHTML = `
+            <div class="answer_info">
+               <img src="${profile_image_url}" alt="profile_img">
+                <div class="compact-voting" id="voting-${answer_id}">
+                    <button class="voting-btn vote-up"
+                            hx-post="/answer/${answer_id}/vote/"
+                            hx-vals='{"type": "like", "csrfmiddlewaretoken": "{{ csrf_token }}"}'
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            hx-target="#voting-${answer_id}"
+                            hx-swap="outerHTML">
+                        <svg class="voting-icon" width="12" height="12" viewBox="0 0 18 18">
+                            <path d="M1 12h16L9 4z"></path>
+                        </svg>
+                    </button>
+                    <span class="voting-count">0</span>
+                    <button class="voting-btn vote-down"
+                            hx-post="/answer/${answer_id}/vote/"
+                            hx-vals='{"type": "dislike", "csrfmiddlewaretoken": "{{ csrf_token }}"}'
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            hx-target="#voting-${answer_id}"
+                            hx-swap="outerHTML">
+                        <svg class="voting-icon" width="12" height="12" viewBox="0 0 18 18">
+                            <path d="M1 6h16l-8 8z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="answer_content">
+                <div class="answer_text">${content}</div>
+                <div class="answer_result">
+                    ${author_id == "{{ user.id }}" ? 
+                        `<button class="accept-btn" data-answer-id="${answer_id}">Accept</button>` : 
+                        ''}
+                </div>
+            </div>
+        `;
+        const answersContainer = document.getElementById('answers-container');
+        if (answersContainer) {
+            answersContainer.prepend(answerEl);
+            if (window.htmx) {
+                htmx.process(answerEl);
+            }
+            const countEl = document.getElementById('answers-count');
+            if (countEl) {
+                const currentCount = parseInt(countEl.textContent) || 0;
+                countEl.textContent = currentCount + 1;
+            }
+        }
+    })
+    .subscribe();
+</script>
+{% endif %}
+{% endblock %}

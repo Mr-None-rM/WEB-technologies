@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: myapp_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build: .
+    container_name: my-django-app
+    command: gunicorn -c mysite/gunicorn.py mysite.wsgi:application
+    volumes:
+      - ./Django:/app
+      - ./logs/gunicorn:/var/log/gunicorn
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY='django-insecure-=uk_we4ekk73x1nyc-29o$7ot0)vwvrbw8kb(cem#z=h*p9kc*'
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - DB_HOST=postgres
+      - DB_NAME=myapp_db
+      - DB_USER=myuser
+      - DB_PASSWORD=mypassword
+      - PYTHONPATH=/app
+      - CENTRIFUGO_URL=http://centrifugo:8010
+      - CENTRIFUGO_EXTERNAL_WS_URL=ws://localhost:8010
+    depends_on:
+      - postgres
+
+  simple_wsgi:
+    build: .
+    container_name: simple-wsgi-app
+    command: gunicorn -c mysite/gunicorn_8081.py mysite.test_wsgi:application
+    volumes:
+      - ./Django:/app
+    ports:
+      - "8081:8081"
+    environment:
+      - PYTHONPATH=/app
+
+  nginx:
+    image: nginx:1.24-alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./logs/nginx:/var/log/nginx
+      - ./Django/static:/app/static
+      - ./Django/media:/app/media
+    depends_on:
+      - web
+
+  centrifugo:
+    container_name: centrifugo
+    image: centrifugo/centrifugo:v6
+    volumes:
+      - ./config.json:/centrifugo/config.json
+    command: centrifugo -c config.json
+    ports:
+      - 8010:8010
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+  cron:
+    build: .
+    command: >
+      sh -c "
+      echo '*/15 * * * * cd /app && python manage.py update_sidebar_cache' > /etc/cron.d/myapp &&
+      crontab /etc/cron.d/myapp &&
+      cron -f
+      "
+    volumes:
+      - ./Django:/app
+
+volumes:
+  postgres_data:

@@ -1,0 +1,25 @@
+{% extends "myapp/base.html" %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'myapp/css/index.css' %}">
+{% endblock %}
+{% block title %}Tag Page - FeatherFlow{% endblock %}
+{% block content %}
+<main class="body_main">
+
+  <section class="body_main_header">
+    <h1>Tag: {{tag.name}}</h1>
+  </section>
+
+  <section class="body_main_questions">
+    {% for question in questions %}
+      {% include 'myapp/question_item.html' with question=question %}
+    {% endfor %}
+  </section>
+
+  {% with objects=page_obj %}
+    {% include "myapp/paginator.html" %}
+  {% endwith %}
+  
+</main>
+{% endblock %}

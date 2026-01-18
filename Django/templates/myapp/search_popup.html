@@ -1,0 +1,38 @@
+<div class="search-popup-content">
+    {% if query %}
+    <div class="search-popup-header">
+        <span class="search-results-title">Search results for "{{ query }}"</span>
+        <a href="{% url 'search' %}?q={{ query|urlencode }}" class="search-all-results">
+            All results →
+        </a>
+    </div>
+    
+    {% if questions %}
+    <div class="search-popup-results">
+        {% for question in questions %}
+        <div class="search-result-item">
+            <a href="{% url 'question_detail' question.id %}" class="search-result-link">
+                <div class="search-result-title">{{ question.title }}</div>
+                <div class="search-result-meta">
+                    <span class="search-result-rating">{{ question.votes }}</span>
+                    <span class="search-result-answers">{{ question.answers.count }} answers</span>
+                    <span class="search-result-date">{{ question.created_at|date:"d.m.Y" }}</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="search-popup-empty">
+        <div class="empty-title">No results found</div>
+        <div class="empty-text">Try changing your search query</div>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="search-popup-empty">
+        <div class="empty-title">Start typing to search</div>
+        <div class="empty-text">Search for questions by title or content</div>
+    </div>
+    {% endif %}
+</div>

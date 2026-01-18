@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'myapp/css/base.css' %}" />
+    {% block extra_css %}{% endblock %}
+    {% block extra_js %}{% endblock %}
+    <title>{% block title %}My Site Main{% endblock %}</title>
+    <script src="{% static 'myapp/js/htmx.min.js' %}"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+</head>
+<body>
+
+  <header>
+
+    <a href="{% url 'index' %}" class="header-logo-link">
+      <span>FeatherFlow</span>
+      <img src="{% static 'myapp/images/logo.png' %}" alt="logo_img">
+    </a>
+
+    <div class="search-container">
+      <form class="search-form" 
+            hx-get="{% url 'search_popup' %}" 
+            hx-target="#search-results-popup"
+            hx-trigger="input delay:300ms"
+            hx-swap="innerHTML"
+            hx-indicator="#search-loading">
+          <input type="text" 
+                name="q" 
+                id="search-input"
+                class="header_search" 
+                placeholder="Search questions..." 
+                value="{{ request.GET.q }}" 
+                autocomplete="off">
+          <button type="submit" style="display: none;">Search</button>
+      </form>
+      <div id="search-results-popup" class="search-popup"></div>
+    </div>
+
+    <a href="{% url 'ask' %}" class="header_button_ask">Ask</a>
+
+    <div class="header_profile">
+      {% if user.is_authenticated %}
+        {% if user.profile.image_url %}
+          <img src="{{ user.profile.image_url }}" alt="profile_img">
+        {% else %}
+          <img src="media/profiles/default.png" alt="profile_img">
+        {% endif %}
+
+        <div class="header_profile_info">
+          <span class="profile_name">{{ user.profile.nickname }}</span> 
+          <div class="header_profile_settings">
+            <a href="{% url 'settings' %}" class="profile-btn">settings</a>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+              {% csrf_token %}
+              <button type="submit" class="profile-btn logout-btn">log out</button>
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="header_profile_info">
+          <div class="header_profile_settings">
+            <a href="{% url 'login' %}" class="profile-btn">log in</a>
+            <a href="{% url 'register' %}" class="profile-btn">registration</a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </header>
+
+  <div class="body">
+    {% block content %}
+    {% endblock %}
+    {% block sidebar %}
+
+    <aside class="body_asside">
+
+      <section class="body_asside_tags">
+        <h2>Popular Tags</h2>
+        <div class="body_asside_popular_tags">
+          {% for tag in popular_tags %}
+            <a href="{% url 'tag_questions' tag.id %}" class="tag-link">
+              {{ tag.name }}
+              <span class="tag-count">({{ tag.questions_count }})</span>
+            </a>
+          {% empty %}
+            <div class="no-data">No tags yet</div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="body_asside_questions">
+        <h2>Hot Questions</h2>
+        <div class="body_asside_hot_questions">
+          {% for question in popular_questions %}
+            <a href="{% url 'question_detail' question.id %}" class="question-link">
+              {{ question.title|truncatewords:6 }}
+              <span class="question-rating">{{ question.rating }} ▲</span>
+            </a>
+          {% empty %}
+            <div class="no-data">No questions yet</div>
+          {% endfor %}
+        </div>
+      </section>
+
+    </aside>
+
+    {% endblock %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const searchPopup = document.getElementById('search-results-popup');
+    let hideTimeout = null;
+    
+    function showPopup() {
+        if (hideTimeout) clearTimeout(hideTimeout);
+        searchPopup.classList.add('show');
+    }
+    
+    function hidePopup() {
+        hideTimeout = setTimeout(() => {
+            searchPopup.classList.remove('show');
+        }, 200);
+    }
+    
+    searchInput.addEventListener('focus', function() {
+        if (searchPopup.innerHTML.trim()) {
+            showPopup();
+        }
+    });
+    
+    searchInput.addEventListener('blur', hidePopup);
+    
+    searchPopup.addEventListener('mouseenter', function() {
+        if (hideTimeout) clearTimeout(hideTimeout);
+    });
+    
+    searchPopup.addEventListener('mouseleave', hidePopup);
+    
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+        if (event.target.id === 'search-results-popup') {
+            const hasContent = event.detail.elt.innerHTML.trim() !== '';
+            
+            if (hasContent) {
+                showPopup();
+            } else {
+                searchPopup.classList.remove('show');
+            }
+        }
+    });
+    
+    document.body.addEventListener('htmx:beforeRequest', function(event) {
+        if (event.target.classList.contains('search-form')) {
+            const formData = new FormData(event.target);
+            const query = formData.get('q');
+            
+            if (!query || query.trim() === '') {
+                searchPopup.innerHTML = '';
+                searchPopup.classList.remove('show');
+            }
+        }
+    });
+    
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && searchPopup.classList.contains('show')) {
+            searchPopup.classList.remove('show');
+            searchInput.blur();
+        }
+    });
+    
+    document.addEventListener('click', function(event) {
+        if (!searchPopup.contains(event.target) && 
+            !searchInput.contains(event.target) &&
+            searchPopup.classList.contains('show')) {
+            searchPopup.classList.remove('show');
+        }
+    });
+});
+</script>
+
+</body>
+</html>

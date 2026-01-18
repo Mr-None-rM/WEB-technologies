@@ -1,0 +1,30 @@
+<div class="question">
+
+  <div class="question_info">
+    {% if question.author.profile.image_url %}
+      <img src="{{ question.author.profile.image_url }}" alt="profile_img">
+    {% else %}
+      <img src="media/profiles/default.png" alt="profile_img">
+    {% endif %}
+    {% if question.author != user %}
+      {% include 'myapp/voting_question.html' with object=question object_type='question' current_vote=question.get_user_vote user=user %}
+    {% endif %}
+  </div>
+
+  <div class="question_content">
+    <a href="{% url 'question_detail' question.id %}" class="question_title">{{ question.title }}</a>
+    <div class="question_text"> {{ question.content }} </div>
+    <div class="question_tags">
+      <a href="{% url 'question_detail' question.id %}">answers ({{ question.answers_count }})</a>
+      <span>
+        Tags:
+        {% for tag in question.tags.all %}
+          <a href="{% url 'tag_questions' tag.id %}">{{ tag.name }}</a>
+        {% empty %}
+          <span>no tags</span>
+        {% endfor %}
+      </span>
+    </div>
+  </div>
+
+</div>
