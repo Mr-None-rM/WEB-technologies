@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.db.models import Count, Case, When, Value, IntegerField
 from django.contrib.auth.models import User
 from django.urls import reverse
 from .managers import QuestionManager, AnswerManager, TagManager
@@ -79,7 +80,6 @@ class Question(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['created_at']),
-            models.Index(fields=['is_answered']),
             models.Index(fields=['rating']),
             models.Index(fields=['author', 'created_at']),
             models.Index(fields=['title']),
@@ -101,18 +101,19 @@ class Question(models.Model):
                 return None
         return None
     
-    def _update_rating(self, old_vote_type, new_vote_type):
-        rating_change = 0
-        if old_vote_type == VoteType.LIKE:
-            rating_change -= 1
-        elif old_vote_type == VoteType.DISLIKE:
-            rating_change += 1
-        if new_vote_type == VoteType.LIKE:
-            rating_change += 1
-        elif new_vote_type == VoteType.DISLIKE:
-            rating_change -= 1
-        self.rating += rating_change
-        self.save()
+    def _update_rating(self):
+        likes_aggregate = self.ratings.aggregate(
+            rating_diff=Count(
+                Case(
+                    When(type=VoteType.LIKE, then=Value(1)),
+                    When(type=VoteType.DISLIKE, then=Value(-1)),
+                    default=Value(0),
+                    output_field=IntegerField()
+                )
+            )
+        )
+        self.rating = likes_aggregate['rating_diff'] or 0
+        self.save(update_fields=['rating'])
 
     def add_user_vote(self, user, vote_type):
         if user == self.author:
@@ -120,25 +121,27 @@ class Question(models.Model):
         if vote_type not in VoteType.values:
             raise ValueError("Некорректный тип голоса")
         with transaction.atomic():
-            question = Question.objects.select_for_update().get(pk=self.pk)
-            previous_vote = question.ratings.filter(user=user).first()
-            old_type = previous_vote.type if previous_vote else None
+            previous_vote = self.ratings.filter(user=user).first()
             if previous_vote:
-                previous_vote.delete()
-            QuestionLike.objects.create(
-                question=question,
-                user=user,
-                type=vote_type
-            )
-            question._update_rating(old_type, vote_type)
+                if previous_vote.type == vote_type:
+                    previous_vote.delete()
+                else:
+                    previous_vote.type = vote_type
+                    previous_vote.save()
+            else:
+                QuestionLike.objects.create(
+                    question=self,
+                    user=user,
+                    type=vote_type
+                )
+            self._update_rating()
 
     def remove_vote(self, user):
         with transaction.atomic():
-            question = Question.objects.select_for_update().get(pk=self.pk)
-            previous_vote = question.ratings.filter(user=user).first()
+            previous_vote = self.ratings.filter(user=user).first()
             if previous_vote:
-                question._update_rating(previous_vote.type, None)
                 previous_vote.delete()
+                self._update_rating()
 
 class Answer(models.Model):
 
@@ -196,18 +199,19 @@ class Answer(models.Model):
                 return None
         return None
     
-    def _update_rating(self, old_vote_type, new_vote_type):
-        rating_change = 0
-        if old_vote_type == VoteType.LIKE:
-            rating_change -= 1
-        elif old_vote_type == VoteType.DISLIKE:
-            rating_change += 1
-        if new_vote_type == VoteType.LIKE:
-            rating_change += 1
-        elif new_vote_type == VoteType.DISLIKE:
-            rating_change -= 1
-        self.rating += rating_change
-        self.save()
+    def _update_rating(self):
+        likes_aggregate = self.ratings.aggregate(
+            rating_diff=Count(
+                Case(
+                    When(type=VoteType.LIKE, then=Value(1)),
+                    When(type=VoteType.DISLIKE, then=Value(-1)),
+                    default=Value(0),
+                    output_field=IntegerField()
+                )
+            )
+        )
+        self.rating = likes_aggregate['rating_diff'] or 0
+        self.save(update_fields=['rating'])
 
     def add_user_vote(self, user, vote_type):
         if user == self.author:
@@ -215,25 +219,27 @@ class Answer(models.Model):
         if vote_type not in VoteType.values:
             raise ValueError("Некорректный тип голоса")
         with transaction.atomic():
-            answer = Answer.objects.select_for_update().get(pk=self.pk)
-            previous_vote = answer.ratings.filter(user=user).first()
-            old_type = previous_vote.type if previous_vote else None
+            previous_vote = self.ratings.filter(user=user).first()
             if previous_vote:
-                previous_vote.delete()
-            AnswerLike.objects.create(
-                answer=answer,
-                user=user,
-                type=vote_type
-            )
-            answer._update_rating(old_type, vote_type)
+                if previous_vote.type == vote_type:
+                    previous_vote.delete()
+                else:
+                    previous_vote.type = vote_type
+                    previous_vote.save()
+            else:
+                AnswerLike.objects.create(
+                    answer=self,
+                    user=user,
+                    type=vote_type
+                )
+            self._update_rating()
 
     def remove_vote(self, user):
         with transaction.atomic():
-            answer = Answer.objects.select_for_update().get(pk=self.pk)
-            previous_vote = answer.ratings.filter(user=user).first()
+            previous_vote = self.ratings.filter(user=user).first()
             if previous_vote:
-                answer._update_rating(previous_vote.type, None)
                 previous_vote.delete()
+                self._update_rating()
 
     def toggle_accept(self, user):
         if user != self.question.author:

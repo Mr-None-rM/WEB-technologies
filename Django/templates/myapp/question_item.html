@@ -6,7 +6,9 @@
     {% else %}
       <img src="media/profiles/default.png" alt="profile_img">
     {% endif %}
-    {% include 'myapp/voting_question.html' with object=question object_type='question' current_vote=question.get_user_vote user=user %}
+    {% if question.author != user %}
+      {% include 'myapp/voting_question.html' with object=question object_type='question' current_vote=question.get_user_vote user=user %}
+    {% endif %}
   </div>
 
   <div class="question_content">

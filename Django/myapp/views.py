@@ -108,12 +108,12 @@ class QuestionDetail(DetailView):
         context['answers'] = paginate_objects(answers, page, per_page=5)
         if self.request.user.is_authenticated:
             context['centrifuge_token'] = generate_token(self.request.user.pk)
-            context['centrifuge_url'] = settings.CENTRIFUGO_URL
-            context['centrifuge_channel'] = f"question_{self.object.id}"
+            context['centrifuge_user_id'] = str(self.request.user.pk)
         else:
-            context['centrifuge_token'] = None
-            context['centrifuge_url'] = None
-            context['centrifuge_channel'] = None
+            context['centrifuge_token'] = generate_token("UNAUTH")
+            context['centrifuge_user_id'] = "UNAUTH"
+        context['centrifuge_url'] = settings.CENTRIFUGO_URL
+        context['centrifuge_channel'] = f"question_{self.object.id}"
         return context
 
 class AskQuestion(LoginRequiredMixin, FormView):
@@ -136,14 +136,15 @@ class CreateAnswerView(LoginRequiredMixin, FormView):
     form_class = AnswerForm
     template_name = "myapp/create_answer.html"
     
+    def dispatch(self, request, *args, **kwargs):
+        self.question = Question.objects.for_detail(kwargs['question_id'])
+        return super().dispatch(request, *args, **kwargs)
+    
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['author'] = self.request.user
-        kwargs['question'] = self.get_question()
+        kwargs['question'] = self.question
         return kwargs
-    
-    def get_question(self):
-        return Question.objects.for_detail(self.kwargs['question_id'])
     
     def form_valid(self, form):
         answer = form.save()
@@ -158,19 +159,20 @@ class CreateAnswerView(LoginRequiredMixin, FormView):
             'author_username': self.request.user.username,
             'profile_image_url': profile_image_url,
             'created_at': answer.created_at.isoformat(),
-            'question_id': self.get_question().id
+            'question_id': self.question.id
         }
-        channel = f"question_{self.get_question().id}"
+        
+        channel = f"question_{self.question.id}"
         publish_to_centrifuge(channel, answer_data)
         return super().form_valid(form)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['question'] = self.get_question()
+        context['question'] = self.question
         return context
     
     def get_success_url(self):
-        return reverse('question_detail', kwargs={'question_id': self.get_question().id})
+        return reverse('question_detail', kwargs={'question_id': self.question.id})
 
 class TagQuestions(LoginRequiredMixin, ListView):
     model = Question

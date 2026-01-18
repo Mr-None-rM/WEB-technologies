@@ -1,3 +1,5 @@
+import json
+
 def application(environ, start_response):
     method = environ.get('REQUEST_METHOD', 'GET')
     path = environ.get('PATH_INFO', '/')
@@ -14,14 +16,17 @@ def application(environ, start_response):
             content_length = int(environ.get('CONTENT_LENGTH', 0))
         except ValueError:
             content_length = 0
-        
         if content_length > 0:
             body = environ['wsgi.input'].read(content_length)
-            body_str = body.decode('utf-8')
-            for pair in body_str.split('&'):
-                if '=' in pair:
-                    key, value = pair.split('=', 1)
-                    post_params[key] = value
+            content_type = environ.get('CONTENT_TYPE', '')
+            if 'application/json' in content_type:
+                post_params = json.loads(body.decode('utf-8'))
+            else:
+                body_str = body.decode('utf-8', errors='ignore')
+                for pair in body_str.split('&'):
+                    if '=' in pair:
+                        key, value = pair.split('=', 1)
+                        post_params[key] = value
     output_lines = []
     output_lines.append(f"WSGI Test App on port 8081")
     output_lines.append(f"Method: {method}")
@@ -32,13 +37,10 @@ def application(environ, start_response):
         output_lines.append(f"  {key}: {value}")
     output_lines.append("")
     output_lines.append("POST Parameters:")
-    for key, value in post_params.items():
-        output_lines.append(f"  {key}: {value}")
+    if post_params:
+        for key, value in post_params.items():
+            output_lines.append(f"  {key}: {value}")
     output_lines.append("")
-    output_lines.append("All ENV variables:")
-    for key in sorted(environ.keys()):
-        if key.startswith('HTTP_') or key in ['REQUEST_METHOD', 'PATH_INFO', 'QUERY_STRING']:
-            output_lines.append(f"  {key}: {environ[key]}")
     response_text = '\n'.join(output_lines)
     status = '200 OK'
     response_headers = [

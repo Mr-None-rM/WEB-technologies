@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import FileExtensionValidator
 from .models import Profile
 
 class UserRegistrationForm(forms.Form):
@@ -12,7 +13,14 @@ class UserRegistrationForm(forms.Form):
     nickname = forms.CharField(label="Nickname", max_length=50, required=True)
     password = forms.CharField(label="Password", max_length=150, widget=forms.PasswordInput, required=True, validators=[validate_password])
     password_confirm = forms.CharField(label="Confirm Password", max_length=150, widget=forms.PasswordInput, required=True)
-    avatar = forms.ImageField(widget=forms.FileInput, required=False)
+    avatar = forms.ImageField(
+        widget=forms.FileInput, 
+        required=False,
+        validators=[FileExtensionValidator(
+            allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'],
+            message='Unsupported file format. Allowed formats: JPG, JPEG, PNG, GIF, BMP, WEBP'
+        )]
+    )
     
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -42,12 +50,6 @@ class UserRegistrationForm(forms.Form):
         min_file_size = 1
         if avatar.size < min_file_size:
             raise forms.ValidationError('File appears to be empty')
-        valid_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
-        extension = avatar.name.split('.')[-1].lower()
-        if extension not in valid_extensions:
-            raise forms.ValidationError(
-                f'Unsupported file format. Allowed formats: {", ".join(valid_extensions)}'
-            )
         return avatar
     
     def clean(self):
@@ -74,7 +76,15 @@ class UserRegistrationForm(forms.Form):
         return user
     
 class UserSettingsForm(forms.ModelForm):
-    avatar = forms.ImageField(label="", widget=forms.FileInput, required=False)
+    avatar = forms.ImageField(
+        label="", 
+        widget=forms.FileInput, 
+        required=False,
+        validators=[FileExtensionValidator(
+            allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'],
+            message='Unsupported file format. Allowed formats: JPG, JPEG, PNG, GIF, BMP, WEBP'
+        )]
+    )
     username = forms.CharField(label="Username", max_length=150, required=True)
     email = forms.EmailField(label="Email", widget=forms.EmailInput, required=True)
     nickname = forms.CharField(label="Nickname", max_length=50, required=True)
@@ -85,19 +95,9 @@ class UserSettingsForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
-            try:
-                profile = self.instance.profile
-            except ObjectDoesNotExist:
-                profile = None
-            self.fields['username'].initial = self.instance.username
-            self.fields['email'].initial = self.instance.email
-            if profile:
-                self.fields['nickname'].initial = profile.nickname
-                self.fields['avatar'].initial = profile.avatar
-            else:
-                self.fields['nickname'].initial = self.instance.username
-                self.fields['avatar'].initial = None
+        profile = self.instance.profile
+        self.fields['nickname'].initial = profile.nickname
+        self.fields['avatar'].initial = profile.avatar
     
     def clean_avatar(self):
         avatar = self.cleaned_data.get('avatar')
@@ -109,12 +109,6 @@ class UserSettingsForm(forms.ModelForm):
         min_file_size = 1
         if avatar.size < min_file_size:
             raise forms.ValidationError('File appears to be empty')
-        valid_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp']
-        extension = avatar.name.split('.')[-1].lower()
-        if extension not in valid_extensions:
-            raise forms.ValidationError(
-                f'Unsupported file format. Allowed formats: {", ".join(valid_extensions)}'
-            )
         return avatar
     
     def clean_username(self):

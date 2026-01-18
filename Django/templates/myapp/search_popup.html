@@ -21,15 +21,6 @@
             </a>
         </div>
         {% endfor %}
-        
-        {% if questions|length >= 5 %}
-        <div class="search-popup-more">
-            <a href="{% url 'search' %}?q={{ query|urlencode }}"
-               class="search-more-link">
-                Show all results
-            </a>
-        </div>
-        {% endif %}
     </div>
     {% else %}
     <div class="search-popup-empty">

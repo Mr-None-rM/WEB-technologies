@@ -1,12 +1,16 @@
 <div class="answer {% if answer.is_accepted %}accepted{% endif %}" id="answer-{{ answer.id }}">
+
   <div class="answer_info">
     {% if answer.author.profile.image_url %}
       <img src="{{ answer.author.profile.image_url }}" alt="profile_img">
     {% else %}
       <img src="media/profiles/default.png" alt="profile_img">
     {% endif %}
-    {% include 'myapp/voting_answer.html' with object=answer object_type='answer' current_vote=answer.get_user_vote user=user %}
+    {% if answer.author != user %}
+      {% include 'myapp/voting_answer.html' with object=answer object_type='answer' current_vote=answer.get_user_vote user=user %}
+    {% endif %}
   </div>
+
     <div class="answer_content">
       <div class="answer_text">{{answer.content}}</div>
       <div class="answer_result">
@@ -15,4 +19,5 @@
         {% endif %}
       </div>
     </div>
+
 </div>
